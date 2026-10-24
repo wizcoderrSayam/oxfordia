@@ -1,0 +1,143 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\EnquiryStatus;
+use App\Models\AdmissionEnquiry;
+use App\Models\Enrollment;
+use App\Models\Student;
+use App\Models\User;
+use App\Notifications\PortalInvitation;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
+
+class StudentManagementTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Storage::fake('public');
+        $this->actingAs(User::factory()->staff()->create());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function payload(array $overrides = []): array
+    {
+        return array_merge([
+            'full_name' => 'Anjali Varma',
+            'email' => 'anjali@example.com',
+            'phone' => '+91 98765 43210',
+            'admission_date' => now()->toDateString(),
+            'status' => 'active',
+        ], $overrides);
+    }
+
+    public function test_registering_students_generates_unique_sequential_registration_numbers(): void
+    {
+        $this->post(route('admin.students.store'), $this->payload())->assertRedirect();
+        $this->post(route('admin.students.store'), $this->payload(['full_name' => 'Second Student', 'email' => null]))->assertRedirect();
+
+        $numbers = Student::query()->orderBy('id')->pluck('registration_number')->all();
+        $year = now()->year;
+
+        $this->assertSame(["OXF-{$year}-0001", "OXF-{$year}-0002"], $numbers);
+    }
+
+    public function test_registration_number_cannot_be_set_through_the_form(): void
+    {
+        $this->post(route('admin.students.store'), $this->payload(['registration_number' => 'HACKED-1']));
+
+        $this->assertDatabaseMissing('students', ['registration_number' => 'HACKED-1']);
+    }
+
+    public function test_email_and_phone_are_validated(): void
+    {
+        $this->post(route('admin.students.store'), $this->payload(['email' => 'not-an-email', 'phone' => 'abc']))
+            ->assertSessionHasErrors(['email', 'phone']);
+    }
+
+    public function test_profile_photo_must_be_an_image(): void
+    {
+        $this->post(route('admin.students.store'), $this->payload([
+            'photo' => UploadedFile::fake()->create('cv.pdf', 50, 'application/pdf'),
+        ]))->assertSessionHasErrors('photo');
+
+        $this->post(route('admin.students.store'), $this->payload([
+            'photo' => UploadedFile::fake()->image('me.png', 300, 300),
+        ]))->assertSessionHasNoErrors();
+
+        Storage::disk('public')->assertExists(Student::query()->firstOrFail()->profile_photo_path);
+    }
+
+    public function test_students_can_be_searched_and_filtered(): void
+    {
+        Student::factory()->create(['full_name' => 'Findable Person']);
+        Student::factory()->create(['full_name' => 'Other Person', 'status' => 'graduated']);
+
+        $this->get(route('admin.students.index', ['q' => 'Findable']))->assertSee('Findable Person')->assertDontSee('Other Person');
+        $this->get(route('admin.students.index', ['status' => 'graduated']))->assertSee('Other Person')->assertDontSee('Findable Person');
+    }
+
+    public function test_student_profile_shows_enrollments(): void
+    {
+        $enrollment = Enrollment::factory()->create();
+
+        $this->get(route('admin.students.show', $enrollment->student))
+            ->assertOk()
+            ->assertSee($enrollment->course->title)
+            ->assertSee($enrollment->enrollment_number);
+    }
+
+    public function test_student_with_history_cannot_be_deleted(): void
+    {
+        $enrollment = Enrollment::factory()->create();
+
+        $this->delete(route('admin.students.destroy', $enrollment->student))->assertSessionHas('error');
+        $this->assertModelExists($enrollment->student);
+    }
+
+    public function test_enquiry_can_be_converted_into_a_student(): void
+    {
+        $enquiry = AdmissionEnquiry::query()->create(['name' => 'Enquirer', 'phone' => '9876543210']);
+
+        $this->get(route('admin.students.create', ['enquiry' => $enquiry->id]))->assertOk()->assertSee('Enquirer');
+
+        $this->post(route('admin.students.store'), $this->payload(['full_name' => 'Enquirer', 'enquiry_id' => $enquiry->id]))->assertRedirect();
+
+        $enquiry->refresh();
+        $this->assertSame(EnquiryStatus::Converted, $enquiry->status);
+        $this->assertNotNull($enquiry->student_id);
+    }
+
+    public function test_portal_invite_creates_a_linked_student_login(): void
+    {
+        Notification::fake();
+        $student = Student::factory()->create(['email' => 'invitee@example.com']);
+
+        $this->post(route('admin.students.invite', $student))->assertSessionHas('success');
+
+        $user = User::query()->where('email', 'invitee@example.com')->firstOrFail();
+        $this->assertTrue($user->isStudent());
+        $this->assertSame($user->id, $student->fresh()->user_id);
+        Notification::assertSentTo($user, PortalInvitation::class);
+    }
+
+    public function test_portal_invite_never_links_a_staff_account(): void
+    {
+        Notification::fake();
+        $staff = User::factory()->staff()->create();
+        $student = Student::factory()->create(['email' => $staff->email]);
+
+        $this->post(route('admin.students.invite', $student))->assertSessionHas('error');
+
+        $this->assertNull($student->fresh()->user_id);
+    }
+}

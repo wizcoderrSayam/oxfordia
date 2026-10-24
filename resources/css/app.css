@@ -1,0 +1,667 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views';
+@source '../js';
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+    --font-display: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+    --color-navy-50: #eef3fb;
+    --color-navy-100: #d9e3f5;
+    --color-navy-200: #b5c8ea;
+    --color-navy-300: #87a4da;
+    --color-navy-400: #5a7ec6;
+    --color-navy-500: #3b5fae;
+    --color-navy-600: #2b4991;
+    --color-navy-700: #233a75;
+    --color-navy-800: #1b2d5c;
+    --color-navy-900: #132147;
+    --color-navy-950: #0b1430;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+@utility btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+@utility btn-primary {
+    @apply btn bg-navy-800 text-white hover:bg-navy-700 focus-visible:ring-navy-600;
+}
+
+@utility btn-accent {
+    @apply btn bg-amber-500 text-navy-950 hover:bg-amber-400 focus-visible:ring-amber-500;
+}
+
+@utility btn-secondary {
+    @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus-visible:ring-navy-500;
+}
+
+@utility btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-500 focus-visible:ring-red-500;
+}
+
+@utility btn-sm {
+    @apply px-3 py-1.5 text-xs;
+}
+
+@utility form-label {
+    @apply mb-1.5 block text-sm font-medium text-slate-700;
+}
+
+@utility form-input {
+    @apply block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 focus:outline-none;
+}
+
+@utility form-error {
+    @apply mt-1.5 text-sm text-red-600;
+}
+
+@utility card {
+    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+}
+
+@layer components {
+    .table-base {
+        @apply min-w-full divide-y divide-slate-200 text-sm;
+    }
+
+    .table-base th {
+        @apply bg-slate-50/70 px-4 py-3 text-left text-[11px] font-semibold tracking-wider whitespace-nowrap text-slate-500 uppercase;
+    }
+
+    .table-base td {
+        @apply px-4 py-3.5 align-middle text-slate-700;
+    }
+
+    .table-base tbody tr {
+        @apply border-t border-slate-100 transition-colors hover:bg-slate-50/60;
+    }
+}
+
+/*
+ * Admin console. The admin layout's body carries `admin-ui`: the sidebar sits on a neutral
+ * canvas and the page content on a raised sheet. One typeface (Inter), neutral greys and a
+ * single navy accent. Everything here is scoped to that class so the portal, auth and
+ * public pages keep the base utilities.
+ */
+.admin-ui {
+    --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+    --admin-canvas: #f5f6f8;
+    --admin-sheet: #ffffff;
+    --admin-line: #e5e7eb;
+    --admin-muted: #5b6475;
+    --admin-accent: var(--color-navy-700);
+    --admin-badge-bg: #eceef2;
+    --admin-badge-ink: #3f4756;
+    --admin-table-head: #f7f8fa;
+    --chart-bar: #3b5fae;
+    --chart-grid: #eef0f3;
+
+    background-color: var(--admin-canvas);
+    font-feature-settings: 'cv11', 'ss01';
+}
+
+html.dark .admin-ui {
+    --admin-canvas: #0b0f17;
+    --admin-sheet: #0f172a;
+    --admin-line: #1f2937;
+    --admin-muted: #94a3b8;
+    --admin-badge-bg: rgb(255 255 255 / 0.08);
+    --admin-badge-ink: #cbd5e1;
+    --admin-table-head: #243247;
+    --chart-bar: #5a7ec6;
+    --chart-grid: #233044;
+}
+
+/*
+ * Sidebar: a navy gradient panel with a white logo card and a white pill for the current
+ * page. Colours here are fixed values, not palette tokens, because dark mode remaps the
+ * slate/navy tokens and the white surfaces inside the panel must keep dark text.
+ */
+.admin-sidebar {
+    width: 16.5rem;
+    color: #ffffff;
+    background: linear-gradient(180deg, #0c1a40 0%, #10275e 50%, #15397f 100%);
+    box-shadow: inset -1px 0 0 rgb(255 255 255 / 0.06);
+}
+
+html.dark .admin-sidebar {
+    background: linear-gradient(180deg, #070d22 0%, #0b1a40 55%, #10285a 100%);
+}
+
+@media (min-width: 1024px) {
+    .admin-main {
+        padding-left: 16.5rem;
+        transition: padding-left 0.2s ease-out;
+    }
+
+    html[data-sidebar='collapsed'] .admin-sidebar {
+        width: 4.75rem;
+    }
+
+    html[data-sidebar='collapsed'] .admin-main {
+        padding-left: 4.75rem;
+    }
+
+    html[data-sidebar='collapsed'] .sidebar-text {
+        display: none;
+    }
+
+    html[data-sidebar='collapsed'] .admin-nav-link {
+        justify-content: center;
+        padding-inline: 0;
+    }
+
+    html[data-sidebar='collapsed'] .admin-brand-card {
+        justify-content: center;
+        padding: 0.375rem;
+    }
+
+    html[data-sidebar='collapsed'] .admin-sidebar-nav > div + div {
+        padding-top: 1rem;
+        border-top: 1px solid rgb(255 255 255 / 0.12);
+    }
+}
+
+.admin-brand-card {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.875rem;
+    background: #ffffff;
+    box-shadow: 0 8px 20px -10px rgb(0 0 0 / 0.55);
+}
+
+.admin-brand-card:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+.admin-brand-logo {
+    display: block;
+    max-width: 100%;
+    max-height: 2.75rem;
+    margin-inline: auto;
+    object-fit: contain;
+}
+
+.admin-brand-name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #0f1f4b;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.admin-brand-tag {
+    display: block;
+    color: #5b6475;
+    font-size: 0.6875rem;
+    font-weight: 500;
+}
+
+.admin-sidebar-close {
+    flex-shrink: 0;
+    padding: 0.375rem;
+    border-radius: 0.5rem;
+    color: rgb(255 255 255 / 0.8);
+}
+
+.admin-sidebar-close:hover {
+    background-color: rgb(255 255 255 / 0.1);
+    color: #ffffff;
+}
+
+.admin-sidebar-nav {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.3) transparent;
+}
+
+.admin-sidebar-nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.admin-sidebar-nav::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.3);
+}
+
+.admin-sheet {
+    background-color: var(--admin-sheet);
+}
+
+@media (min-width: 1024px) {
+    .admin-sheet {
+        min-height: calc(100vh - 1rem);
+        margin: 0.5rem 0.5rem 0.5rem 0.5rem;
+        border-radius: 1.25rem;
+        box-shadow: 0 0 0 1px rgb(15 23 42 / 0.05), 0 12px 32px -18px rgb(15 23 42 / 0.25);
+    }
+
+    html.dark .admin-sheet {
+        box-shadow: 0 0 0 1px rgb(255 255 255 / 0.06);
+    }
+}
+
+.admin-monogram {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.5rem;
+    background: #10275e;
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.admin-section-label {
+    padding-inline: 0.875rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.6);
+}
+
+.admin-nav-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    height: 2.5rem;
+    padding-inline: 0.875rem;
+    border-radius: 0.625rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: rgb(255 255 255 / 0.9);
+    transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.admin-nav-link svg {
+    color: rgb(255 255 255 / 0.85);
+    transition: color 0.15s;
+}
+
+.admin-nav-link:hover {
+    background-color: rgb(255 255 255 / 0.09);
+    color: #ffffff;
+}
+
+.admin-nav-link:hover svg {
+    color: #ffffff;
+}
+
+.admin-nav-link:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: -2px;
+}
+
+.admin-nav-link[aria-current='page'] {
+    background-color: #ffffff;
+    color: #10275e;
+    box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.5);
+}
+
+.admin-nav-link[aria-current='page'] svg {
+    color: #10275e;
+}
+
+.admin-nav-link[aria-current='page']:focus-visible {
+    outline-color: #f5b301;
+}
+
+.admin-badge {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    margin-left: auto;
+    padding-inline: 0.375rem;
+    border-radius: 0.375rem;
+    background: var(--admin-badge-bg);
+    color: var(--admin-badge-ink);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.admin-sidebar .admin-badge {
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.16);
+    color: #ffffff;
+}
+
+.admin-sidebar .admin-nav-link[aria-current='page'] .admin-badge {
+    background: #e6ebf7;
+    color: #10275e;
+}
+
+.admin-badge-dot {
+    display: none;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.9rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow: 0 0 0 2px #10275e;
+}
+
+@media (min-width: 1024px) {
+    html[data-sidebar='collapsed'] .admin-badge-dot {
+        display: block;
+    }
+}
+
+.admin-kbd {
+    display: inline-flex;
+    align-items: center;
+    height: 1.25rem;
+    padding-inline: 0.375rem;
+    border-radius: 0.3125rem;
+    border: 1px solid var(--color-slate-200);
+    background: var(--admin-sheet);
+    color: var(--admin-muted);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    font-family: var(--font-sans);
+}
+
+.admin-ui .card {
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+.admin-ui a.card:hover {
+    box-shadow: 0 4px 12px -6px rgb(15 23 42 / 0.18);
+}
+
+.admin-ui :is(.btn, .btn-primary, .btn-secondary, .btn-danger, .btn-accent) {
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    font-weight: 500;
+}
+
+.admin-ui .btn-sm {
+    padding: 0.3125rem 0.625rem;
+    font-size: 0.75rem;
+}
+
+.admin-ui .btn-primary:not(:focus-visible) {
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.16);
+}
+
+.admin-ui .form-input {
+    border-radius: 0.5rem;
+    padding-block: 0.5rem;
+}
+
+.admin-ui input[type='file'].form-input {
+    padding-block: 0.3125rem;
+    padding-left: 0.3125rem;
+    color: var(--color-slate-600);
+}
+
+.admin-ui input[type='file']::file-selector-button {
+    margin-right: 0.75rem;
+    padding: 0.3125rem 0.75rem;
+    border: 1px solid var(--color-slate-200);
+    border-radius: 0.375rem;
+    background: var(--admin-canvas);
+    color: var(--color-slate-700);
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.admin-ui input[type='file']::file-selector-button:hover {
+    border-color: var(--color-slate-300);
+}
+
+.admin-ui .table-base th {
+    background-color: var(--admin-table-head);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+}
+
+.admin-badge--inline {
+    margin-left: 0;
+}
+
+/* Enrollment trend: one series, so one colour; the hovered or focused month stays solid. */
+.admin-chart-bar {
+    background-color: var(--chart-bar);
+    border-radius: 4px 4px 0 0;
+    transition: opacity 0.15s;
+}
+
+.admin-chart:hover .admin-chart-bar,
+.admin-chart:focus-within .admin-chart-bar {
+    opacity: 0.5;
+}
+
+.admin-chart .admin-chart-col:hover .admin-chart-bar,
+.admin-chart .admin-chart-col:focus .admin-chart-bar {
+    opacity: 1;
+}
+
+.admin-chart-col:focus-visible {
+    outline: 2px solid var(--chart-bar);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+.admin-tooltip {
+    position: absolute;
+    left: 50%;
+    z-index: 10;
+    display: none;
+    transform: translateX(-50%);
+    padding: 0.375rem 0.625rem;
+    border-radius: 0.5rem;
+    background: #0f172a;
+    color: #cbd5e1;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 8px 20px -8px rgb(15 23 42 / 0.45);
+}
+
+.admin-tooltip strong {
+    color: #ffffff;
+}
+
+html.dark .admin-tooltip {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+html.dark .admin-tooltip strong {
+    color: #0f172a;
+}
+
+.admin-chart-col:hover .admin-tooltip,
+.admin-chart-col:focus .admin-tooltip {
+    display: block;
+}
+
+.admin-ui .btn-secondary,
+.admin-ui .form-input {
+    border-color: var(--color-slate-200);
+}
+
+.admin-ui .btn-secondary:hover {
+    border-color: var(--color-slate-300);
+}
+
+.admin-ui .form-input:focus {
+    border-color: var(--color-navy-500);
+}
+
+.admin-ui .form-input[aria-invalid='true'] {
+    border-color: var(--color-red-500);
+}
+
+/*
+ * Admin dark mode. The admin layout adds `dark` to <html>; instead of sprinkling
+ * `dark:` variants through every view, the neutral and tint palettes are remapped here.
+ */
+html.dark {
+    color-scheme: dark;
+
+    --color-slate-50: #0f172a;
+    --color-slate-100: #2a3a52;
+    --color-slate-200: #334155;
+    --color-slate-300: #475569;
+    --color-slate-400: #7c8aa0;
+    --color-slate-500: #94a3b8;
+    --color-slate-600: #cbd5e1;
+    --color-slate-700: #e2e8f0;
+    --color-slate-800: #e2e8f0;
+    --color-slate-900: #f8fafc;
+
+    --color-emerald-50: #052e26;
+    --color-emerald-200: #065f46;
+    --color-emerald-700: #6ee7b7;
+    --color-emerald-800: #a7f3d0;
+    --color-red-50: #3b1114;
+    --color-red-100: #5b1a1e;
+    --color-red-600: #f87171;
+    --color-red-200: #7f1d1d;
+    --color-red-700: #fca5a5;
+    --color-red-800: #fecaca;
+    --color-amber-50: #3a2a08;
+    --color-amber-200: #78350f;
+    --color-amber-700: #fcd34d;
+    --color-amber-800: #fde68a;
+    --color-amber-900: #fef3c7;
+    --color-sky-50: #082f49;
+    --color-sky-200: #0c4a6e;
+    --color-sky-700: #7dd3fc;
+    --color-sky-800: #bae6fd;
+    --color-navy-50: #1b2d5c;
+    --color-navy-700: #87a4da;
+}
+
+html.dark .bg-white,
+html.dark .card,
+html.dark .form-input,
+html.dark .btn-secondary {
+    background-color: #1e293b;
+}
+
+html.dark .form-input,
+html.dark .btn-secondary {
+    border-color: #475569;
+}
+
+html.dark .btn-secondary:hover {
+    background-color: #334155;
+}
+
+html.dark .btn {
+    --tw-ring-offset-color: #0f172a;
+}
+
+html.dark .btn-primary {
+    background-color: var(--color-navy-600);
+}
+
+html.dark .btn-primary:hover {
+    background-color: var(--color-navy-500);
+}
+
+html.dark .bg-navy-100 {
+    background-color: var(--color-navy-800);
+}
+
+html.dark .text-navy-800,
+html.dark .text-navy-900 {
+    color: var(--color-navy-200);
+}
+
+html.dark .btn-danger {
+    background-color: #dc2626;
+}
+
+html.dark .btn-danger:hover {
+    background-color: #b91c1c;
+}
+
+html.dark .border-navy-200 {
+    border-color: var(--color-navy-600);
+}
+
+html.dark .card.border-amber-200 {
+    background-color: rgb(120 53 15 / 0.18);
+}
+
+html.dark .bg-slate-900\/50 {
+    background-color: rgb(0 0 0 / 0.6);
+}
+
+/*
+ * Public site theme (navy, gold and ivory with a serif display face). The public layout
+ * adds `theme-oxf` to <body>; re-pointing the tokens here restyles every public page.
+ */
+.theme-oxf {
+    --font-sans: 'Manrope', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Fraunces', Georgia, serif;
+
+    --color-navy-50: #eef2fb;
+    --color-navy-700: #1d3f95;
+    --color-navy-800: #142c6e;
+    --color-navy-900: #0e1b4a;
+    --color-navy-950: #0b1a45;
+
+    --color-amber-300: #e3c98a;
+    --color-amber-400: #d4b362;
+    --color-amber-500: #c5a046;
+    --color-amber-600: #8a6a20;
+    --color-amber-700: #8a6a20;
+
+    --color-slate-50: #faf8f3;
+    --color-slate-200: #e7e3d8;
+    --color-slate-100: #f1eee4;
+
+    font-family: var(--font-sans);
+}
+
+:where(.theme-oxf) :is(h1, h2, h3) {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+}
+
+.theme-oxf .btn {
+    border-radius: 6px;
+}
+
+.theme-oxf .eyebrow {
+    @apply inline-flex items-center gap-3.5 text-xs font-bold tracking-[0.22em] text-amber-600 uppercase;
+}
+
+.theme-oxf .eyebrow::before {
+    content: '';
+    width: 36px;
+    height: 1px;
+    background: var(--color-amber-500);
+}

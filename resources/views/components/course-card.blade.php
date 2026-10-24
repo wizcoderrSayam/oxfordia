@@ -1,0 +1,29 @@
+@props(['course'])
+<article class="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+    <a href="{{ route('courses.show', $course) }}" class="relative block aspect-[16/10] overflow-hidden bg-slate-100">
+        <img src="{{ $course->image_url }}" alt="" loading="lazy" class="size-full object-cover transition duration-500 group-hover:scale-105">
+        @if ($course->category)
+            <span class="absolute top-3 left-3 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-navy-800 shadow-sm">{{ $course->category->name }}</span>
+        @endif
+        @if ($course->is_featured)
+            <span class="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-navy-950"><x-icon name="star" class="size-3" /> Featured</span>
+        @endif
+    </a>
+    <div class="flex flex-1 flex-col p-5">
+        <p class="text-xs font-semibold tracking-wide text-slate-400 uppercase">{{ $course->course_code }}</p>
+        <h3 class="mt-1 font-display text-lg leading-snug font-bold text-slate-900">
+            <a href="{{ route('courses.show', $course) }}" class="hover:text-navy-700">{{ $course->title }}</a>
+        </h3>
+        @if ($course->short_description)
+            <p class="mt-2 line-clamp-3 text-sm text-slate-600">{{ $course->short_description }}</p>
+        @endif
+        <div class="mt-auto flex items-center justify-between gap-3 border-t border-slate-100 pt-4 text-sm">
+            <span class="inline-flex items-center gap-1.5 text-slate-500"><x-icon name="clock" /> {{ $course->duration_label ?? 'Flexible' }}</span>
+            @if ($course->isPurchasable())
+                <span class="font-display font-bold text-navy-800">₹{{ number_format((float) $course->fee) }}</span>
+            @else
+                <span class="font-medium text-amber-700">Enquire</span>
+            @endif
+        </div>
+    </div>
+</article>

@@ -1,0 +1,106 @@
+<?php
+
+namespace App\Services;
+
+use App\Enums\ResultStatus;
+use App\Models\Course;
+use App\Models\CourseModule;
+use App\Models\Enrollment;
+use Illuminate\Support\Collection;
+
+/**
+ * Computes totals, percentage, pass/fail and grade from module marks.
+ */
+class ResultService
+{
+    public function __construct(private InstituteSettings $settings) {}
+
+    /**
+     * Recalculate and persist the result columns of an enrollment.
+     */
+    /**
+     * @param  Collection<int, CourseModule>|null  $modules  Pre-loaded course modules, to avoid re-querying per enrollment.
+     */
+    public function recalculate(Enrollment $enrollment, ?Collection $modules = null): Enrollment
+    {
+        $modules ??= $enrollment->course->modules()->get();
+        $marks = $enrollment->marks()->get()->keyBy('course_module_id');
+
+        $result = $this->compute($modules, $marks->map(fn ($mark) => (float) $mark->marks)->all());
+
+        $enrollment->forceFill([
+            'total_marks' => $result['total'],
+            'max_total_marks' => $result['max_total'],
+            'percentage' => $result['percentage'],
+            'result' => $result['result'],
+            'final_grade' => $result['grade'],
+        ])->save();
+
+        return $enrollment;
+    }
+
+    /**
+     * Recalculate every enrollment of a course that is not frozen by a valid certificate.
+     */
+    public function recalculateCourse(Course $course): void
+    {
+        $modules = $course->modules()->get();
+
+        $course->enrollments()
+            ->whereDoesntHave('validCertificate')
+            ->each(fn (Enrollment $enrollment) => $this->recalculate($enrollment, $modules));
+    }
+
+    /**
+     * Compute a result. It is only final when every module has marks.
+     *
+     * @param  Collection<int, CourseModule>  $modules
+     * @param  array<int, float>  $marksByModule
+     * @return array{total: float|null, max_total: int|null, percentage: float|null, result: ResultStatus|null, grade: string|null, complete: bool}
+     */
+    public function compute(Collection $modules, array $marksByModule): array
+    {
+        $empty = ['total' => null, 'max_total' => null, 'percentage' => null, 'result' => null, 'grade' => null, 'complete' => false];
+
+        if ($modules->isEmpty()) {
+            return $empty;
+        }
+
+        $complete = $modules->every(fn (CourseModule $module) => array_key_exists($module->id, $marksByModule));
+
+        if (! $complete) {
+            return $empty;
+        }
+
+        $total = round($modules->sum(fn (CourseModule $module) => $marksByModule[$module->id]), 2);
+        $maxTotal = (int) $modules->sum('max_marks');
+        $percentage = $maxTotal > 0 ? round($total / $maxTotal * 100, 2) : 0.0;
+
+        $passedEveryModule = $modules->every(fn (CourseModule $module) => $marksByModule[$module->id] >= $module->pass_marks);
+        $grade = $passedEveryModule ? $this->gradeFor($percentage) : null;
+        $passed = $passedEveryModule && $grade !== null;
+
+        return [
+            'total' => $total,
+            'max_total' => $maxTotal,
+            'percentage' => $percentage,
+            'result' => $passed ? ResultStatus::Pass : ResultStatus::Fail,
+            'grade' => $passed ? $grade : 'Fail',
+            'complete' => true,
+        ];
+    }
+
+    /**
+     * The grade for a percentage, or null when it falls below every band.
+     */
+    public function gradeFor(float $percentage): ?string
+    {
+        foreach ($this->settings->gradeBands() as $band) {
+            if ($percentage >= $band['min']) {
+                return $band['grade'];
+            }
+        }
+
+        return null;
+    }
+}
