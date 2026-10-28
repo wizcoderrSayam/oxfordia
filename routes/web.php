@@ -29,6 +29,14 @@ Route::post('/contact', [Public\ContactController::class, 'store'])
     ->middleware('throttle:public-forms')
     ->name('contact.store');
 
+Route::get('/results', [Public\ResultController::class, 'index'])->name('results.index');
+Route::post('/results', [Public\ResultController::class, 'lookup'])
+    ->middleware('throttle:result-lookup')
+    ->name('results.lookup');
+Route::get('/results/document/{enrollment}', [Public\ResultController::class, 'document'])
+    ->middleware('signed')
+    ->name('results.document');
+
 Route::middleware('throttle:verify-certificate')->group(function () {
     Route::get('/verify-certificate', [Public\CertificateVerificationController::class, 'index'])->name('certificates.verify');
     Route::get('/verify-certificate/{identifier}', [Public\CertificateVerificationController::class, 'show'])
@@ -104,6 +112,9 @@ Route::middleware(['auth', 'backoffice'])->prefix('admin')->name('admin.')->grou
     Route::post('students/{student}/invite', [Admin\StudentController::class, 'invite'])->name('students.invite');
 
     Route::resource('enrollments', Admin\EnrollmentController::class)->except(['edit', 'destroy']);
+    Route::post('enrollments/{enrollment}/result-document', [Admin\EnrollmentResultDocumentController::class, 'store'])->name('enrollments.result-document.store');
+    Route::get('enrollments/{enrollment}/result-document', [Admin\EnrollmentResultDocumentController::class, 'show'])->name('enrollments.result-document.show');
+    Route::delete('enrollments/{enrollment}/result-document', [Admin\EnrollmentResultDocumentController::class, 'destroy'])->name('enrollments.result-document.destroy');
 
     Route::get('certificates', [Admin\CertificateController::class, 'index'])->name('certificates.index');
     Route::get('certificates/{certificate}', [Admin\CertificateController::class, 'show'])->name('certificates.show');

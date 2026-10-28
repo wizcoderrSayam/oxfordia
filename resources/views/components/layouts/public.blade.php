@@ -6,9 +6,9 @@
     $phoneLink = preg_replace('/[^0-9+]/', '', (string) $institute->get('phone'));
     $navigation = [
         ['label' => 'Home', 'url' => route('home'), 'active' => 'home'],
-        ['label' => 'About', 'url' => route('home').'#about', 'active' => 'about'],
+        ['label' => 'About', 'url' => route('about'), 'active' => 'about'],
         ['label' => 'Courses', 'url' => route('courses.index'), 'active' => 'courses.*'],
-        ['label' => 'Results', 'url' => route('certificates.verify'), 'active' => 'certificates.verify*'],
+        ['label' => 'Results', 'url' => route('results.index'), 'active' => 'results.*'],
         ['label' => 'Contact', 'url' => route('contact.create'), 'active' => 'contact.*'],
     ];
     $socials = [
@@ -36,6 +36,7 @@
     </style>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('oxf/assets/css/inner.css') }}">
+    <script>document.documentElement.classList.add('js-anim');</script>
 </head>
 <body class="oxf-body theme-oxf flex min-h-screen flex-col bg-white font-sans text-slate-800 antialiased">
     <a href="#main" class="sr-only z-50 rounded bg-white px-4 py-2 focus:not-sr-only focus:absolute focus:top-2 focus:left-2">Skip to content</a>
@@ -172,7 +173,7 @@
         <div class="footer__bottom">
             <div class="container" style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px">
                 <span>&copy; {{ now()->year }} {{ $siteName }}. All rights reserved.</span>
-                <span>Learn Today &middot; Lead Tomorrow</span>
+                <span>Website designed by <a href="https://peerinfotech.com/" target="_blank" rel="noopener">Peer Infotech</a></span>
             </div>
         </div>
     </footer>

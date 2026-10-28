@@ -108,6 +108,7 @@ class AppServiceProvider extends ServiceProvider
     private function configureRateLimiting(): void
     {
         RateLimiter::for('verify-certificate', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
+        RateLimiter::for('result-lookup', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
         RateLimiter::for('public-forms', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
         RateLimiter::for('checkout', fn (Request $request) => Limit::perMinute(10)->by($request->user()?->id ?: $request->ip()));
         RateLimiter::for('admin-search', fn (Request $request) => Limit::perMinute(120)->by($request->user()?->id ?: $request->ip()));

@@ -85,6 +85,53 @@
 }
 
 /*
+ * Scroll-reveal for the "oxf" public pages (about, contact, courses…). The home page is a
+ * separate static build with its own GSAP-driven reveal, so this is scoped to `.oxf-body`
+ * (the shared public layout) to avoid touching it. Toggled by inner.js via IntersectionObserver;
+ * `.in-view` is added once an element enters the viewport.
+ */
+.js-anim .oxf-body [data-animate] {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity .7s cubic-bezier(.16, .84, .44, 1), transform .7s cubic-bezier(.16, .84, .44, 1);
+}
+
+/* The off-screen start of left/right reveals must not widen the page on narrow screens. */
+.oxf-body > main { overflow-x: clip; }
+
+.js-anim .oxf-body [data-animate='left'] { transform: translateX(-36px); }
+.js-anim .oxf-body [data-animate='right'] { transform: translateX(36px); }
+.js-anim .oxf-body [data-animate='zoom'] { transform: scale(.94); }
+
+.js-anim .oxf-body [data-animate].in-view {
+    opacity: 1;
+    transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .js-anim .oxf-body [data-animate] {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}
+
+@keyframes oxf-float {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(0, -18px, 0); }
+}
+
+.oxf-body .animate-float {
+    animation: oxf-float 7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .oxf-body .animate-float {
+        animation: none;
+    }
+}
+
+/*
  * Admin console. The admin layout's body carries `admin-ui`: the sidebar sits on a neutral
  * canvas and the page content on a raised sheet. One typeface (Inter), neutral greys and a
  * single navy accent. Everything here is scoped to that class so the portal, auth and

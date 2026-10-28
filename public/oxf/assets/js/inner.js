@@ -28,4 +28,37 @@
   document.querySelectorAll('[data-menu-close]').forEach(function (el) { el.addEventListener('click', function () { setMenu(false); }); });
   if (backdrop) backdrop.addEventListener('click', function () { setMenu(false); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setMenu(false); });
+
+  /* Scroll reveal: elements marked [data-animate] fade/slide in once visible. */
+  var animated = document.querySelectorAll('[data-animate]');
+  if (animated.length) {
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion || !('IntersectionObserver' in window)) {
+      animated.forEach(function (el) { el.classList.add('in-view'); });
+    } else {
+      // Once revealed, drop the attribute so the element's own hover transforms and timings apply.
+      var settle = function (el) {
+        el.removeAttribute('data-animate');
+        el.classList.remove('in-view');
+        el.style.transitionDelay = '';
+      };
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var el = entry.target;
+          observer.unobserve(el);
+          el.classList.add('in-view');
+          var done = false;
+          var finish = function () { if (!done) { done = true; settle(el); } };
+          el.addEventListener('transitionend', function onEnd(e) {
+            if (e.target !== el || e.propertyName !== 'opacity') return;
+            el.removeEventListener('transitionend', onEnd);
+            finish();
+          });
+          setTimeout(finish, (parseFloat(el.style.transitionDelay) || 0) + 1200);
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+      animated.forEach(function (el) { observer.observe(el); });
+    }
+  }
 })();

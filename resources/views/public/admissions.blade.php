@@ -1,17 +1,36 @@
+@php
+    $phone = (string) $institute->get('phone');
+    $phoneLink = preg_replace('/[^0-9+]/', '', $phone);
+    $whatsappNumber = preg_replace('/\D/', '', $phone);
+@endphp
 <x-layouts.public title="Admissions">
-    <section class="bg-navy-950 py-16">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6">
-            <h1 class="font-display text-4xl font-extrabold text-white">Admissions</h1>
-            <p class="mt-3 max-w-2xl text-navy-100">Tell us what you'd like to learn. Our admissions team will contact you about course fit, batch timings and fees.</p>
+    <section class="page-hero">
+        <div class="page-hero__bg"><img src="{{ asset('oxf/assets/images/px-class.jpg') }}" alt=""></div>
+        <div class="page-hero__ring" aria-hidden="true"></div>
+        <div class="oxf-wrap">
+            <ol class="breadcrumb-oxf" data-animate>
+                <li><a href="{{ route('home') }}">Home</a></li>
+                <li aria-current="page">Admissions</li>
+            </ol>
+            <span class="label" data-animate style="transition-delay:80ms">Admissions open</span>
+            <h1 class="page-hero__title" data-animate style="transition-delay:160ms">Your next chapter <em>starts here</em></h1>
+            <p class="page-hero__lead" data-animate style="transition-delay:240ms">Tell us what you'd like to learn. Our admissions team will contact you about course fit, batch timings and fees.</p>
+            <ul class="hero-chips" data-animate style="transition-delay:320ms">
+                <li><i class="bi bi-chat-heart" aria-hidden="true"></i> Free counselling</li>
+                <li><i class="bi bi-clock" aria-hidden="true"></i> Morning to evening batches</li>
+                <li><i class="bi bi-patch-check" aria-hidden="true"></i> Verifiable certificates</li>
+            </ul>
         </div>
     </section>
 
-    <section class="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-5">
-        <div class="lg:col-span-3">
-            <div class="card p-6 sm:p-8">
-                <h2 class="font-display text-xl font-bold text-navy-950">Admission enquiry</h2>
-                <p class="mt-1 text-sm text-slate-500">Fields marked * are required. Sending an enquiry does not create an account or enrolment.</p>
-                <form method="POST" action="{{ route('admissions.store') }}" class="mt-6 grid gap-5 sm:grid-cols-2" x-data="{ submitting: false }" @submit="submitting = true">
+    <section class="admission-section">
+    <div class="oxf-wrap">
+        <div class="admission-layout">
+            <div class="contact-form contact-form--accent" data-animate>
+                <span class="label">Admission enquiry</span>
+                <h2 class="title-lg">Tell us about yourself</h2>
+                <p class="form-note"><i class="bi bi-info-circle" aria-hidden="true"></i><span>Fields marked <span class="text-red-500">*</span> are required. Sending an enquiry does not create an account or enrolment.</span></p>
+                <form method="POST" action="{{ route('admissions.store') }}" class="grid gap-6 sm:grid-cols-2" x-data="{ submitting: false }" @submit="submitting = true">
                     @csrf
                     <div class="sm:col-span-2"><x-input name="name" label="Student name" required autocomplete="name" /></div>
                     <x-input name="phone" type="tel" label="Phone" required autocomplete="tel" />
@@ -21,29 +40,71 @@
                     </div>
                     <div class="sm:col-span-2"><x-textarea name="message" label="Message" rows="4" placeholder="Your background, preferred timings, questions…" /></div>
                     <div class="sm:col-span-2">
-                        <button type="submit" class="btn-accent w-full sm:w-auto" :disabled="submitting">
-                            <x-icon name="send" /> <span x-text="submitting ? 'Sending…' : 'Submit enquiry'">Submit enquiry</span>
+                        <button type="submit" class="btn-oxf btn-gold" :disabled="submitting">
+                            <span x-text="submitting ? 'Sending…' : 'Submit enquiry'">Submit enquiry</span> <i class="bi bi-arrow-right" aria-hidden="true"></i>
                         </button>
                     </div>
                 </form>
             </div>
+
+            <aside class="admission-aside">
+                <div class="steps-card" data-animate="right" style="transition-delay:120ms">
+                    <span class="label">The process</span>
+                    <h2 class="title-lg">How admission works</h2>
+                    <ol class="steps-v">
+                        @foreach ([
+                            ['title' => 'Enquire or buy online', 'text' => 'Send this form, or buy a course directly from its page.'],
+                            ['title' => 'Confirm your batch', 'text' => 'Our team confirms your batch and registration number.'],
+                            ['title' => 'Learn and track', 'text' => 'Attend classes and follow your results in the student portal.'],
+                            ['title' => 'Get certified', 'text' => 'Receive a verifiable certificate on successful completion.'],
+                        ] as $step)
+                            <li>
+                                <span class="steps-v__num">{{ $loop->iteration }}</span>
+                                <div><strong>{{ $step['title'] }}</strong><p>{{ $step['text'] }}</p></div>
+                            </li>
+                        @endforeach
+                    </ol>
+                </div>
+
+                <div class="talk-card" data-animate="right" style="transition-delay:240ms">
+                    <h3>Prefer to talk?</h3>
+                    <p>Speak to an admissions counsellor directly.</p>
+                    <ul class="talk-card__list">
+                        <li><i class="bi bi-telephone" aria-hidden="true"></i><a href="tel:{{ $phoneLink }}">{{ $phone }}</a></li>
+                        <li><i class="bi bi-envelope" aria-hidden="true"></i><a href="mailto:{{ $institute->get('email') }}">{{ $institute->get('email') }}</a></li>
+                        <li><i class="bi bi-clock" aria-hidden="true"></i>{{ $institute->get('office_hours') }}</li>
+                    </ul>
+                    <div class="talk-card__actions">
+                        <a href="tel:{{ $phoneLink }}" class="btn-oxf btn-gold"><i class="bi bi-telephone" aria-hidden="true"></i> Call</a>
+                        <a href="https://wa.me/{{ $whatsappNumber }}" target="_blank" rel="noopener" class="btn-oxf btn-line"><i class="bi bi-whatsapp" aria-hidden="true"></i> WhatsApp</a>
+                    </div>
+                </div>
+            </aside>
         </div>
-        <aside class="space-y-6 lg:col-span-2">
-            <div class="card p-6">
-                <h2 class="font-display text-lg font-bold text-navy-950">How admission works</h2>
-                <ol class="mt-4 space-y-4 text-sm text-slate-600">
-                    <li class="flex gap-3"><span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-navy-950">1</span> Send an enquiry or buy a course online.</li>
-                    <li class="flex gap-3"><span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-navy-950">2</span> Our team confirms your batch and registration number.</li>
-                    <li class="flex gap-3"><span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-navy-950">3</span> Attend classes and track your results in the student portal.</li>
-                    <li class="flex gap-3"><span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-navy-950">4</span> Receive a verifiable certificate on successful completion.</li>
-                </ol>
+    </div>
+    </section>
+
+    <section class="section bg-ivory">
+        <div class="oxf-wrap">
+            <div class="section-head section-head--center" data-animate>
+                <span class="label">Good to know</span>
+                <h2 class="section-title">Admission <em>questions</em></h2>
             </div>
-            <div class="card p-6">
-                <h2 class="font-display text-lg font-bold text-navy-950">Prefer to talk?</h2>
-                <p class="mt-3 flex items-center gap-2 text-sm text-slate-600"><x-icon name="phone" /> {{ $institute->get('phone') }}</p>
-                <p class="mt-2 flex items-center gap-2 text-sm text-slate-600"><x-icon name="mail" /> {{ $institute->get('email') }}</p>
-                <p class="mt-2 flex items-center gap-2 text-sm text-slate-600"><x-icon name="clock" /> {{ $institute->get('office_hours') }}</p>
+            <div class="faq" data-animate>
+                @foreach ([
+                    ['q' => 'Does sending an enquiry enrol me in a course?', 'a' => 'No. An enquiry does not create an account or an enrolment. Our admissions team will contact you to discuss the right course, batch timings and fees before anything is confirmed.'],
+                    ['q' => 'Can I buy a course online instead?', 'a' => 'Yes. Open any course from the courses page and buy it directly. Our team will then confirm your batch and registration number.'],
+                    ['q' => 'Which batch timings are available?', 'a' => 'We run batches from morning to evening so school students, college students and working professionals can all find a time that fits.'],
+                    ['q' => 'How will I know how I am doing?', 'a' => 'Every course is split into modules with assessments. Your marks and results are available in the online student portal throughout the course.'],
+                    ['q' => 'Can employers check my certificate?', 'a' => 'Yes. Every certificate carries a unique number and QR code that anyone can verify on our website.'],
+                ] as $faq)
+                    <details @if ($loop->first) open @endif>
+                        <summary>{{ $faq['q'] }}</summary>
+                        <p>{{ $faq['a'] }}</p>
+                    </details>
+                @endforeach
             </div>
-        </aside>
+            <p class="faq-foot" data-animate>Still have a question? <a href="{{ route('contact.create') }}">Contact our team</a></p>
+        </div>
     </section>
 </x-layouts.public>

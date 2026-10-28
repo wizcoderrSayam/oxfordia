@@ -543,9 +543,10 @@ img {
   background: var(--navy-900);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   gap: 5px;
+  padding: 0 0 0 11px;
   box-shadow: 0 2px 10px rgba(8,18,54,0.18);
   transition: background 0.25s;
 }
@@ -562,6 +563,7 @@ img {
 .menu-toggle span:nth-child(1) { width: 22px; }
 .menu-toggle span:nth-child(2) { width: 16px; }
 .menu-toggle span:nth-child(3) { width: 10px; }
+.menu-toggle:hover span { width: 22px; }
 
 /* Mobile off-canvas — slides from LEFT to RIGHT */
 .offcanvas-oxf {
@@ -1796,6 +1798,14 @@ img {
   margin-top: var(--head-gap);
   font-size: 0.85rem;
 }
+.footer__bottom a {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+}
+.footer__bottom a:hover {
+  color: var(--gold-light);
+}
+
 
 /* ==========================================================
    20. FLOATING BUTTONS

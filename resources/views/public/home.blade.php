@@ -1,3 +1,11 @@
+@php
+  $socials = [
+    'facebook_url' => ['Facebook', 'bi-facebook'],
+    'instagram_url' => ['Instagram', 'bi-instagram'],
+    'linkedin_url' => ['LinkedIn', 'bi-linkedin'],
+    'youtube_url' => ['YouTube', 'bi-youtube'],
+  ];
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,24 +46,26 @@
           <li><i class="bi bi-geo-alt"></i>Near Bus Stand, Amritsar Road, Ajnala, 143102</li>
         </ul>
         <div class="topbar__social">
-          <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
-          <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
-          <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+          @foreach ($socials as $key => [$network, $iconClass])
+            @if ($institute->get($key))
+              <a href="{{ $institute->get($key) }}" target="_blank" rel="noopener" aria-label="{{ $network }}"><i class="bi {{ $iconClass }}"></i></a>
+            @endif
+          @endforeach
           <a href="https://wa.me/919855562888" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
         </div>
       </div>
     </div>
     <div class="navbar-wrap">
       <nav class="container navbar-oxf">
-        <a class="brand" href="#home" aria-label="{{ $institute->get('name') }} home">
+        <a class="brand" href="{{ route('home') }}" aria-label="{{ $institute->get('name') }} home">
           <img src="{{ asset('oxf/assets/images/emblem.png') }}" alt="">
           <span class="brand__text"><span class="brand__name">OXFORDIA</span><span class="brand__sub">EDUCATIONAL GROUP</span></span>
         </a>
         <ul class="nav-main d-none d-lg-flex">
-          <li><a class="active" href="#home">Home</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#courses">Courses</a></li>
-          <li><a href="{{ route('certificates.verify') }}">Results</a></li>
+          <li><a class="active" href="{{ route('home') }}">Home</a></li>
+          <li><a href="{{ route('about') }}">About</a></li>
+          <li><a href="{{ route('courses.index') }}">Courses</a></li>
+          <li><a href="{{ route('results.index') }}">Results</a></li>
           <!-- <li><a href="#gallery">Gallery</a></li> -->
           <li><a href="{{ route('contact.create') }}">Contact</a></li>
         </ul>
@@ -72,7 +82,7 @@
   <!-- Mobile menu -->
   <div class="offcanvas offcanvas-start offcanvas-oxf" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
     <div class="offcanvas-header">
-      <a class="brand brand--light" href="#home" id="mobileMenuLabel">
+      <a class="brand brand--light" href="{{ route('home') }}" id="mobileMenuLabel">
         <img src="{{ asset('oxf/assets/images/emblem-light.png') }}" alt="">
         <span class="brand__text"><span class="brand__name">OXFORDIA</span><span class="brand__sub">EDUCATIONAL GROUP</span></span>
       </a>
@@ -80,10 +90,10 @@
     </div>
     <div class="offcanvas-body">
       <ul class="mobile-nav">
-        <li><a href="#home">Home</a></li>
-        <li><a href="#about">About Us</a></li>
-        <li><a href="#courses">Courses</a></li>
-        <li><a href="{{ route('certificates.verify') }}">Results</a></li>
+        <li><a href="{{ route('home') }}">Home</a></li>
+        <li><a href="{{ route('about') }}">About Us</a></li>
+        <li><a href="{{ route('courses.index') }}">Courses</a></li>
+        <li><a href="{{ route('results.index') }}">Results</a></li>
         <!-- <li><a href="#gallery">Gallery</a></li> -->
         <li><a href="{{ route('contact.create') }}">Contact</a></li>
       </ul>
@@ -531,7 +541,7 @@
         <div class="container">
           <div class="row g-4 g-lg-5 align-items-center">
             <div class="col-lg-5" data-reveal="up">
-              <span class="label">Results</span>
+              <span class="label">Certificates</span>
               <h2 class="section-title">Verify a <em>certificate</em></h2>
               <p class="section-lead">Every certificate we issue carries a unique number and QR code. Enter the number to confirm it against our records.</p>
             </div>
@@ -556,36 +566,38 @@
         <div class="container">
           <div class="row g-4 g-lg-5">
             <div class="col-lg-4 col-md-6">
-              <a class="brand brand--light" href="#home">
+              <a class="brand brand--light" href="{{ route('home') }}">
                 <img src="{{ asset('oxf/assets/images/emblem-light.png') }}" alt="">
                 <span class="brand__text"><span class="brand__name">OXFORDIA</span><span class="brand__sub">EDUCATIONAL GROUP</span></span>
               </a>
               <p class="footer__about">Quality computer, IT, accounting and English education for students of Ajnala and nearby areas.</p>
               <div class="footer__social">
-                <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
-                <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
-                <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                @foreach ($socials as $key => [$network, $iconClass])
+                  @if ($institute->get($key))
+                    <a href="{{ $institute->get($key) }}" target="_blank" rel="noopener" aria-label="{{ $network }}"><i class="bi {{ $iconClass }}"></i></a>
+                  @endif
+                @endforeach
                 <a href="https://wa.me/919855562888" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
               </div>
             </div>
             <div class="col-lg-2 col-md-6">
               <h5>Explore</h5>
               <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#about">About Us</a></li>
-                <li><a href="#courses">Courses</a></li>
-                <li><a href="{{ route('certificates.verify') }}">Results</a></li>
+                <li><a href="{{ route('home') }}">Home</a></li>
+                <li><a href="{{ route('about') }}">About Us</a></li>
+                <li><a href="{{ route('courses.index') }}">Courses</a></li>
+                <li><a href="{{ route('results.index') }}">Results</a></li>
                 <li><a href="{{ route('contact.create') }}">Contact</a></li>
               </ul>
             </div>
             <div class="col-lg-3 col-md-6">
               <h5>Popular Courses</h5>
               <ul>
-                <li><a href="#courses">DCA &amp; ADCA</a></li>
-                <li><a href="#courses">DIT &amp; ADIT</a></li>
-                <li><a href="#courses">Financial Accounting</a></li>
-                <li><a href="#courses">Computer Teacher Training</a></li>
-                <li><a href="#courses">Advance English</a></li>
+                <li><a href="{{ route('courses.index') }}">DCA &amp; ADCA</a></li>
+                <li><a href="{{ route('courses.index') }}">DIT &amp; ADIT</a></li>
+                <li><a href="{{ route('courses.index') }}">Financial Accounting</a></li>
+                <li><a href="{{ route('courses.index') }}">Computer Teacher Training</a></li>
+                <li><a href="{{ route('courses.index') }}">Advance English</a></li>
               </ul>
             </div>
             <div class="col-lg-3 col-md-6">
@@ -601,7 +613,7 @@
         <div class="footer__bottom">
           <div class="container d-flex flex-column flex-md-row justify-content-between gap-2 text-center text-md-start">
             <span>&copy; <span id="year">2026</span> {{ $institute->get('name') }}. All rights reserved.</span>
-            <span>Learn Today &middot; Lead Tomorrow</span>
+            <span>Website designed by <a href="https://peerinfotech.com/" target="_blank" rel="noopener">Peer Infotech</a></span>
           </div>
         </div>
       </footer>

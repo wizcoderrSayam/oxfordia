@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 #[Fillable([
     'student_id', 'course_id', 'enrollment_date', 'start_date', 'expected_completion_date',
@@ -112,6 +114,16 @@ class Enrollment extends Model
         $query->where('status', EnrollmentStatus::Completed)
             ->where('result', ResultStatus::Pass)
             ->whereDoesntHave('validCertificate');
+    }
+
+    public function hasResultDocument(): bool
+    {
+        return $this->result_document_path !== null && Storage::disk('local')->exists($this->result_document_path);
+    }
+
+    public function resultDocumentIsPdf(): bool
+    {
+        return Str::lower(pathinfo((string) $this->result_document_path, PATHINFO_EXTENSION)) === 'pdf';
     }
 
     public function isPassed(): bool

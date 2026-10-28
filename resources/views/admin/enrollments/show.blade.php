@@ -66,6 +66,28 @@
             </section>
 
             <section class="card p-6">
+                <h2 class="text-base font-semibold text-slate-900">Result document</h2>
+                <p class="mt-1 text-sm text-slate-500">Scanned result shown to the student on the public Results page.</p>
+                @if ($enrollment->hasResultDocument())
+                    <div class="mt-4 flex items-center gap-3 rounded-lg border border-slate-200 p-3">
+                        <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-navy-50 text-navy-700"><x-icon :name="$enrollment->resultDocumentIsPdf() ? 'file-text' : 'eye'" class="size-5" /></span>
+                        <p class="min-w-0 flex-1 truncate text-sm font-medium text-slate-900" title="{{ $enrollment->result_document_name }}">{{ $enrollment->result_document_name }}</p>
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <a href="{{ route('admin.enrollments.result-document.show', $enrollment) }}" target="_blank" rel="noopener" class="btn-secondary btn-sm"><x-icon name="external-link" /> View</a>
+                        <x-confirm :action="route('admin.enrollments.result-document.destroy', $enrollment)" method="DELETE" title="Remove result document?" message="The file will be deleted and students will no longer see it on the Results page." confirm-label="Remove" trigger-class="btn-secondary btn-sm">
+                            <x-slot:trigger><x-icon name="trash-2" /> Remove</x-slot:trigger>
+                        </x-confirm>
+                    </div>
+                @endif
+                <form method="POST" action="{{ route('admin.enrollments.result-document.store', $enrollment) }}" enctype="multipart/form-data" class="mt-4 space-y-3">
+                    @csrf
+                    <x-input name="result_document" type="file" :label="$enrollment->hasResultDocument() ? 'Replace file' : 'Upload file'" accept=".pdf,.jpg,.jpeg,.png,.webp" required help="PDF, JPG, PNG or WebP, up to 5 MB." />
+                    <button type="submit" class="btn-primary w-full"><x-icon name="upload" /> {{ $enrollment->hasResultDocument() ? 'Replace document' : 'Upload document' }}</button>
+                </form>
+            </section>
+
+            <section class="card p-6">
                 <h2 class="text-base font-semibold text-slate-900">Certificate</h2>
                 @if ($enrollment->validCertificate)
                     <p class="mt-2 text-sm text-slate-600">Issued on {{ $enrollment->validCertificate->issue_date->format('d M Y') }}.</p>

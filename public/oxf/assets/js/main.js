@@ -156,18 +156,6 @@
     }
   });
 
-  /* ---------- Active nav link ---------- */
-  ['home', 'about', 'courses', 'why', 'gallery', 'contact'].forEach(function (id) {
-    ScrollTrigger.create({
-      trigger: '#' + id,
-      start: 'top 45%',
-      end: 'bottom 45%',
-      onToggle: function (self) {
-        if (self.isActive) $('.nav-main a').removeClass('active').filter('[href="#' + id + '"]').addClass('active');
-      }
-    });
-  });
-
   $('#backToTop').on('click', function () { scrollToTarget('#home'); });
 
   /* ---------- Testimonials: counter + progress line ---------- */
