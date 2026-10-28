@@ -1,6 +1,6 @@
 <x-layouts.public title="Checkout">
     <section class="mx-auto max-w-5xl px-4 py-12 sm:px-6">
-        <x-page-header title="Checkout" subtitle="Confirm your details. These are used for your student record and certificate." :back="route('courses.show', $course)" />
+        <x-page-header title="Checkout" subtitle="Confirm your details. These are used for your student record and certificate." :back="route('courses.index')" />
 
         <div class="grid gap-8 lg:grid-cols-5">
             <form method="POST" action="{{ route('checkout.store', $course) }}" class="card space-y-5 p-6 sm:p-8 lg:col-span-3" x-data="{ submitting: false }" @submit="submitting = true">

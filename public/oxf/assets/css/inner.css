@@ -242,6 +242,7 @@
 .admission-section { padding: clamp(48px, 6vw, 80px) 0; }
 .admission-layout { display: grid; grid-template-columns: 7fr 5fr; align-items: start; gap: 40px; }
 .admission-aside { display: grid; gap: var(--gap); }
+@media (min-width: 992px) { .admission-aside { position: sticky; top: 100px; } }
 @media (max-width: 991.98px) {
   .admission-layout { grid-template-columns: 1fr; }
   .admission-layout .contact-form { margin-top: 0; }

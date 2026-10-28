@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\CourseCategory;
-use App\Services\EnrollmentService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class CourseController extends Controller
@@ -40,23 +40,11 @@ class CourseController extends Controller
         return view('public.courses.index', compact('courses', 'categories', 'search', 'categorySlug'));
     }
 
-    public function show(Request $request, Course $course, EnrollmentService $enrollments): View
+    /**
+     * Course detail pages were retired; old links now open the admission enquiry for that course.
+     */
+    public function show(string $slug): RedirectResponse
     {
-        abort_unless($course->isPublished(), 404);
-
-        $course->load(['category', 'modules']);
-
-        $student = $request->user()?->student;
-        $alreadyEnrolled = $student && $enrollments->hasBlockingEnrollment($student, $course);
-
-        $related = Course::query()
-            ->published()
-            ->with('category')
-            ->whereKeyNot($course->id)
-            ->when($course->category_id, fn ($query) => $query->where('category_id', $course->category_id))
-            ->limit(3)
-            ->get();
-
-        return view('public.courses.show', compact('course', 'alreadyEnrolled', 'related'));
+        return redirect()->route('admissions.create', ['course' => $slug], 301);
     }
 }

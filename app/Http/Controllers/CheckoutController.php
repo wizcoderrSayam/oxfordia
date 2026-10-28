@@ -20,7 +20,7 @@ class CheckoutController extends Controller
         try {
             $checkout->assertCanPurchase($request->user(), $course);
         } catch (ValidationException $exception) {
-            return redirect()->route('courses.show', $course)->with('error', $exception->validator->errors()->first());
+            return redirect()->route('courses.index')->with('error', $exception->validator->errors()->first());
         }
 
         $user = $request->user();
@@ -46,7 +46,7 @@ class CheckoutController extends Controller
         try {
             $order = $checkout->start($request->user(), $course, $request->safe()->except('terms'));
         } catch (ValidationException $exception) {
-            return redirect()->route('courses.show', $course)->with('error', $exception->validator->errors()->first());
+            return redirect()->route('courses.index')->with('error', $exception->validator->errors()->first());
         }
 
         return redirect()->away($checkout->paymentUrl($order));

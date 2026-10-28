@@ -35,10 +35,13 @@ class PublicCatalogTest extends TestCase
             ->assertDontSee('Archived Course');
     }
 
-    public function test_draft_and_archived_course_pages_return_not_found(): void
+    public function test_old_course_detail_links_redirect_to_the_admission_enquiry(): void
     {
-        $this->get(route('courses.show', Course::factory()->draft()->create()))->assertNotFound();
-        $this->get(route('courses.show', Course::factory()->archived()->create()))->assertNotFound();
+        $course = Course::factory()->create();
+
+        $this->get('/courses/'.$course->slug)
+            ->assertMovedPermanently()
+            ->assertRedirect(route('admissions.create', ['course' => $course->slug]));
     }
 
     public function test_catalogue_can_be_searched_and_filtered_by_category(): void
@@ -51,13 +54,35 @@ class PublicCatalogTest extends TestCase
         $this->get(route('courses.index', ['category' => 'design']))->assertSee('Logo Design')->assertDontSee('Python Basics');
     }
 
-    public function test_course_detail_shows_buy_button_only_for_priced_courses(): void
+    public function test_course_cards_link_to_the_admission_enquiry_without_showing_fees(): void
     {
-        $priced = Course::factory()->create(['fee' => 4999]);
-        $enquiryOnly = Course::factory()->enquiryOnly()->create();
+        $course = Course::factory()->create(['fee' => 4999]);
 
-        $this->get(route('courses.show', $priced))->assertOk()->assertSee('Buy Now');
-        $this->get(route('courses.show', $enquiryOnly))->assertOk()->assertDontSee('Buy Now')->assertSee('Apply for Admission');
+        $this->get(route('courses.index'))
+            ->assertOk()
+            ->assertSee('Enquire Now')
+            ->assertSee(route('admissions.create', ['course' => $course->slug]), false)
+            ->assertDontSee('4,999');
+    }
+
+    public function test_admissions_page_preselects_the_course_and_omits_faq_and_process(): void
+    {
+        $course = Course::factory()->create();
+
+        $this->get(route('admissions.create', ['course' => $course->slug]))
+            ->assertOk()
+            ->assertSee('value="'.$course->id.'" selected', false)
+            ->assertDontSee('How admission works')
+            ->assertDontSee('Admission <em>questions</em>', false);
+    }
+
+    public function test_old_admissions_url_redirects_to_enquire_now(): void
+    {
+        $this->get('/admissions?course=web-design')
+            ->assertMovedPermanently()
+            ->assertRedirect(route('admissions.create', ['course' => 'web-design']));
+
+        $this->get(route('admissions.create'))->assertOk()->assertSee('Enquire Now');
     }
 
     public function test_static_pages_render(): void

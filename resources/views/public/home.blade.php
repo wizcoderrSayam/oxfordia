@@ -70,7 +70,7 @@
           <li><a href="{{ route('contact.create') }}">Contact</a></li>
         </ul>
         <div class="d-flex align-items-center gap-3">
-          <a href="{{ route('admissions.create') }}" class="btn-oxf btn-navy d-none d-md-inline-flex">Enroll Now</a>
+          <a href="{{ route('admissions.create') }}" class="btn-oxf btn-navy d-none d-md-inline-flex">Enquire Now</a>
           <button class="menu-toggle d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-controls="mobileMenu" aria-label="Open menu">
             <span></span><span></span><span></span>
           </button>
@@ -97,7 +97,7 @@
         <!-- <li><a href="#gallery">Gallery</a></li> -->
         <li><a href="{{ route('contact.create') }}">Contact</a></li>
       </ul>
-      <a href="{{ route('admissions.create') }}" class="btn-oxf btn-gold mb-4">Enroll Now</a>
+      <a href="{{ route('admissions.create') }}" class="btn-oxf btn-gold mb-4">Enquire Now</a>
       <div class="mobile-contact">
         <p><i class="bi bi-telephone"></i><span><a href="tel:+919855562888">98555-62888</a>, <a href="tel:+919878700751">98787-00751</a></span></p>
         <p><i class="bi bi-envelope"></i><a href="mailto:oxfordiaedu@gmail.com">oxfordiaedu@gmail.com</a></p>
@@ -302,7 +302,7 @@
               @endphp
             <div class="col-md-6 col-lg-4 course-item">
               <article class="course-card">
-                <a href="{{ route('courses.show', $course) }}" class="course-card__img" aria-label="{{ $course->title }}">
+                <a href="{{ route('admissions.create', ['course' => $course->slug]) }}" class="course-card__img" aria-label="Enquire about {{ $course->title }}">
                   <img src="{{ $course->image_url }}" alt="{{ $course->title }}" loading="lazy">
                   <span class="course-card__badge"><i class="bi bi-clock"></i> {{ Str::title($course->duration_label ?? 'Flexible') }}</span>
                   @if ($course->is_featured)

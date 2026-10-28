@@ -41,7 +41,7 @@
                 @if ($order->status === App\Enums\OrderStatus::Paid)
                     <a href="{{ route('portal.dashboard') }}" class="btn-primary">Go to my portal</a>
                 @else
-                    <a href="{{ route('courses.show', $order->course) }}" class="btn-secondary">Back to course</a>
+                    <a href="{{ route('courses.index') }}" class="btn-secondary">Back to courses</a>
                     <a href="{{ route('checkout.create', $order->course) }}" class="btn-accent">Try again</a>
                 @endif
             </div>

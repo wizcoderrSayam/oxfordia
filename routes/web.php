@@ -5,6 +5,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DummyPaymentController;
 use App\Http\Controllers\Portal;
 use App\Http\Controllers\Public;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,10 +18,11 @@ Route::get('/', Public\HomeController::class)->name('home');
 Route::view('/about', 'public.about')->name('about');
 
 Route::get('/courses', [Public\CourseController::class, 'index'])->name('courses.index');
-Route::get('/courses/{course:slug}', [Public\CourseController::class, 'show'])->name('courses.show');
+Route::get('/courses/{slug}', [Public\CourseController::class, 'show'])->name('courses.show');
 
-Route::get('/admissions', [Public\AdmissionEnquiryController::class, 'create'])->name('admissions.create');
-Route::post('/admissions', [Public\AdmissionEnquiryController::class, 'store'])
+Route::get('/enquire-now', [Public\AdmissionEnquiryController::class, 'create'])->name('admissions.create');
+Route::get('/admissions', fn (Request $request) => redirect()->route('admissions.create', $request->query(), 301));
+Route::post('/enquire-now', [Public\AdmissionEnquiryController::class, 'store'])
     ->middleware('throttle:public-forms')
     ->name('admissions.store');
 

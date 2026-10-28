@@ -1,13 +1,17 @@
-<x-layouts.public title="Courses" description="Browse published courses, durations and fees.">
-    <section class="relative overflow-hidden bg-navy-950 py-14 sm:py-16 lg:py-20">
-        <div class="animate-float pointer-events-none absolute -top-24 -right-16 size-72 rounded-full bg-amber-500/10 blur-3xl"></div>
-        <div class="animate-float pointer-events-none absolute -bottom-28 -left-20 size-80 rounded-full bg-navy-600/20 blur-3xl" style="animation-delay:-3.5s"></div>
-        <div class="relative mx-auto max-w-7xl px-4 sm:px-6">
-            <p data-animate class="text-sm font-bold tracking-widest text-amber-400 uppercase">Programmes</p>
-            <h1 data-animate style="transition-delay:80ms" class="mt-3 font-display text-3xl font-extrabold text-white sm:text-4xl md:text-5xl">Find your next course</h1>
-            <p data-animate style="transition-delay:160ms" class="mt-3 max-w-2xl text-sm text-navy-100 sm:text-base">Find a programme that fits your goals. Every course includes module assessments and a verifiable certificate on successful completion.</p>
+<x-layouts.public title="Courses" description="Browse published courses and durations, and enquire about admission.">
+    <section class="page-hero">
+        <div class="page-hero__bg"><img src="{{ asset('oxf/assets/images/px-learning.jpg') }}" alt=""></div>
+        <div class="page-hero__ring" aria-hidden="true"></div>
+        <div class="oxf-wrap">
+            <ol class="breadcrumb-oxf" data-animate>
+                <li><a href="{{ route('home') }}">Home</a></li>
+                <li aria-current="page">Courses</li>
+            </ol>
+            <span class="label" data-animate style="transition-delay:80ms">Programmes</span>
+            <h1 class="page-hero__title" data-animate style="transition-delay:160ms">Find your <em>next course</em></h1>
+            <p class="page-hero__lead" data-animate style="transition-delay:240ms">Find a programme that fits your goals. Every course includes module assessments and a verifiable certificate on successful completion.</p>
 
-            <form data-animate style="transition-delay:240ms" method="GET" action="{{ route('courses.index') }}" class="mt-8 flex flex-col gap-3 rounded-2xl bg-white p-3 shadow-xl sm:flex-row" role="search">
+            <form data-animate style="transition-delay:320ms" method="GET" action="{{ route('courses.index') }}" class="mt-8 flex max-w-3xl flex-col gap-3 rounded-2xl bg-white p-3 shadow-xl sm:flex-row" role="search">
                 <label for="q" class="sr-only">Search courses</label>
                 <div class="relative flex-1">
                     <x-icon name="search" class="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-slate-400" />
@@ -25,7 +29,8 @@
         </div>
     </section>
 
-    <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14">
+    <section class="py-12 sm:py-14">
+    <div class="oxf-wrap">
         @if ($categories->isNotEmpty())
             <div data-animate class="mb-8 flex flex-wrap gap-2">
                 <a href="{{ route('courses.index', array_filter(['q' => $search])) }}" @class(['rounded-full px-4 py-1.5 text-sm font-medium transition', 'bg-navy-800 text-white shadow-sm' => $categorySlug === '', 'bg-slate-100 text-slate-700 hover:bg-slate-200' => $categorySlug !== ''])>All</a>
@@ -53,5 +58,6 @@
             </div>
             <div class="mt-10">{{ $courses->links() }}</div>
         @endif
+    </div>
     </section>
 </x-layouts.public>

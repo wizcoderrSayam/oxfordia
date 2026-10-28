@@ -1,9 +1,6 @@
 <x-layouts.admin :title="$course->title">
     <x-page-header :title="$course->title" :subtitle="$course->course_code.' · '.($course->category?->name ?? 'Uncategorised')" :back="route('admin.courses.index')">
         <x-status-badge :status="$course->status" />
-        @if ($course->isPublished())
-            <a href="{{ route('courses.show', $course) }}" target="_blank" class="btn-secondary"><x-icon name="eye" /> View public page</a>
-        @endif
         <a href="{{ route('admin.courses.marks.edit', $course) }}" class="btn-secondary"><x-icon name="clipboard-list" /> Enter marks</a>
         <a href="{{ route('admin.courses.edit', $course) }}" class="btn-primary"><x-icon name="pencil" /> Edit</a>
     </x-page-header>
