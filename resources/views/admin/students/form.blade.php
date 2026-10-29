@@ -14,6 +14,7 @@
 
         <div class="card space-y-5 p-6 lg:col-span-2">
             <x-input name="full_name" label="Full name" :value="$student->full_name" required help="As it should appear on certificates." />
+            <x-input name="father_name" label="Father's name" :value="$student->father_name" help="Shown on the student's result." />
             <div class="grid gap-5 sm:grid-cols-2">
                 <x-input name="email" type="email" label="Email" :value="$student->email" help="Required for portal access." />
                 <x-input name="phone" type="tel" label="Phone" :value="$student->phone" required />

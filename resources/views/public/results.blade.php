@@ -12,7 +12,7 @@
             </ol>
             <span class="label" data-animate style="transition-delay:80ms">Student results</span>
             <h1 class="page-hero__title" data-animate style="transition-delay:160ms">Check your <em>result</em></h1>
-            <p class="page-hero__lead" data-animate style="transition-delay:240ms">Enter your roll number and date of birth to see your result details and the official result document.</p>
+            <p class="page-hero__lead" data-animate style="transition-delay:240ms">Enter your roll number and date of birth to see your marksheet and download your result.</p>
         </div>
     </section>
 
@@ -22,14 +22,12 @@
             $marks = $enrollment->marks->keyBy('course_module_id');
             $sessionStart = $enrollment->start_date ?? $enrollment->enrollment_date;
             $sessionEnd = $enrollment->completion_date ?? $enrollment->expected_completion_date;
-            $hasDocument = $enrollment->hasResultDocument();
-            $documentUrl = $hasDocument ? URL::temporarySignedRoute('results.document', now()->addMinutes(30), ['enrollment' => $enrollment]) : null;
+            $marksheetUrl = $enrollment->course->modules->isNotEmpty() ? URL::temporarySignedRoute('results.marksheet', now()->addMinutes(30), ['enrollment' => $enrollment]) : null;
             $details = [
-                ['icon' => 'bi-person-vcard', 'label' => 'Roll No', 'value' => $enrollment->enrollment_number],
-                ['icon' => 'bi-person', 'label' => 'Candidate Name', 'value' => $student->full_name],
-                ['icon' => 'bi-calendar-range', 'label' => 'Session', 'value' => $sessionStart->format('d/m/Y').' – '.($sessionEnd?->format('d/m/Y') ?? 'Present')],
-                ['icon' => 'bi-journal-bookmark', 'label' => 'Course Name', 'value' => $enrollment->course->title],
-                ['icon' => 'bi-hourglass-split', 'label' => 'Duration', 'value' => $enrollment->course->duration_label ? Str::title($enrollment->course->duration_label) : '—'],
+                ['icon' => 'bi-person-vcard', 'label' => 'Enrollment No', 'value' => $enrollment->enrollment_number],
+                ['icon' => 'bi-person', 'label' => 'Student Name', 'value' => $student->full_name],
+                ['icon' => 'bi-person-badge', 'label' => 'Father Name', 'value' => $student->father_name ?: '—'],
+                ['icon' => 'bi-journal-bookmark', 'label' => 'Course', 'value' => $enrollment->course->title],
             ];
         @endphp
         <section class="result-section">
@@ -40,9 +38,7 @@
                         <div class="result-sheet__title">
                             <span>{{ $institute->get('name') }}</span>
                             <h2>Statement of Result</h2>
-                        </div>
-                        <button type="button" class="result-sheet__print no-print" onclick="window.print()"><i class="bi bi-printer" aria-hidden="true"></i> Print</button>
-                    </header>
+                        </div>                    </header>
 
                     <dl class="result-details">
                         @foreach ($details as $detail)
@@ -54,87 +50,89 @@
                                 </div>
                             </div>
                         @endforeach
-                        <div class="result-detail result-detail--grade">
-                            <span class="result-detail__icon"><i class="bi bi-award" aria-hidden="true"></i></span>
-                            <div>
-                                <dt>Grade</dt>
-                                <dd>{{ $enrollment->final_grade ?: 'Awaited' }}</dd>
-                            </div>
-                            @if ($enrollment->result)
-                                <span class="result-chip result-chip--{{ $enrollment->result->value }}">{{ $enrollment->result->label() }}</span>
-                            @endif
-                        </div>
                     </dl>
-
-                    @if ($enrollment->validCertificate)
-                        <footer class="result-card__foot">
-                            <span><i class="bi bi-patch-check" aria-hidden="true"></i> Certificate issued &middot; <strong>{{ $enrollment->validCertificate->certificate_number }}</strong></span>
-                            <a href="{{ route('certificates.verify.show', $enrollment->validCertificate->certificate_number) }}" class="link-arrow no-print">Verify certificate <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
-                        </footer>
-                    @endif
                 </article>
 
-                @if ($hasDocument)
-                    <section class="result-doc" data-animate>
-                        <div class="result-doc__head">
-                            <span class="label">Official copy</span>
-                            <h3 class="title-lg">Result document</h3>
-                        </div>
-                        <div class="result-doc__frame">
-                            @if ($enrollment->resultDocumentIsPdf())
-                                <iframe src="{{ $documentUrl }}#view=FitH&toolbar=0" title="Result document for {{ $student->full_name }}" class="result-doc__pdf"></iframe>
-                            @else
-                                <img src="{{ $documentUrl }}" alt="Result document for {{ $student->full_name }}">
-                            @endif
-                        </div>
-                    </section>
-                @else
-                    <div class="result-doc-note" data-animate>
-                        <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
-                        <p>The official result document will appear here once the office uploads it.</p>
-                    </div>
-                @endif
-
-                {{-- Module-wise marks are hidden for now; change false to $marks->isNotEmpty() to show them again. --}}
-                @if (false)
+                @if ($enrollment->course->modules->isNotEmpty())
+                    @php
+                        $modules = $enrollment->course->modules;
+                        $obtained = fn (string $part) => $marks->sum(fn ($mark) => (float) $mark->{$part.'_marks'});
+                        $isComplete = $modules->every(fn ($module) => $marks->has($module->id));
+                        $grandObtained = $isComplete ? $formatMarks($marks->sum(fn ($mark) => (float) $mark->marks)) : '—';
+                        $partCell = fn ($module, $value) => $module->hasPractical() ? $value : '—';
+                    @endphp
                     <article class="result-card" data-animate>
                         <header class="result-card__head">
                             <div>
-                                <span class="result-card__code">Module-wise marks</span>
-                                <h3>{{ $enrollment->total_marks !== null ? $formatMarks($enrollment->total_marks).' / '.$enrollment->max_total_marks : 'Marks' }}@if ($enrollment->percentage !== null) &middot; {{ $formatMarks($enrollment->percentage) }}%@endif</h3>
+                                <span class="result-card__code">Marksheet</span>
+                                <h3>Subject-wise marks</h3>
                             </div>
                         </header>
                         <div class="marks-table-wrap">
-                            <table class="marks-table">
+                            <table class="marksheet">
                                 <thead>
-                                    <tr><th>Module</th><th class="num">Max</th><th class="num">Pass</th><th class="num">Obtained</th><th>Status</th></tr>
+                                    <tr>
+                                        <th rowspan="2" class="marksheet__subject">Subjects</th>
+                                        <th colspan="2">Max. Marks</th>
+                                        <th colspan="2">Min. Marks</th>
+                                        <th colspan="2">Marks Obt.</th>
+                                        <th rowspan="2">Total Marks</th>
+                                    </tr>
+                                    <tr>
+                                        @foreach (range(1, 3) as $group)
+                                            <th><abbr title="Theory">Th.</abbr></th>
+                                            <th><abbr title="Practical">Pr.</abbr></th>
+                                        @endforeach
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($enrollment->course->modules as $module)
+                                    @foreach ($modules as $module)
                                         @php($mark = $marks->get($module->id))
                                         <tr>
-                                            <td>
-                                                <span class="marks-table__module">{{ $module->name }}</span>
-                                                @if ($mark)
-                                                    <span class="result-bar result-bar--sm"><span style="width: {{ $module->max_marks > 0 ? min(100, (float) $mark->marks / $module->max_marks * 100) : 0 }}%"></span></span>
-                                                @endif
-                                            </td>
-                                            <td class="num">{{ $module->max_marks }}</td>
-                                            <td class="num">{{ $module->pass_marks }}</td>
-                                            <td class="num"><strong>{{ $mark ? $formatMarks($mark->marks) : '—' }}</strong></td>
-                                            <td>
-                                                @if (! $mark)
-                                                    <span class="result-chip result-chip--pending">Awaiting</span>
-                                                @elseif ((float) $mark->marks >= $module->pass_marks)
-                                                    <span class="result-chip result-chip--pass">Passed</span>
-                                                @else
-                                                    <span class="result-chip result-chip--fail">Not passed</span>
-                                                @endif
-                                            </td>
+                                            <td class="marksheet__subject">{{ $module->name }}</td>
+                                            <td>{{ $module->theory_max_marks }}</td>
+                                            <td>{{ $partCell($module, $module->practical_max_marks) }}</td>
+                                            <td>{{ $module->theory_pass_marks }}</td>
+                                            <td>{{ $partCell($module, $module->practical_pass_marks) }}</td>
+                                            <td><strong>{{ $mark ? $formatMarks($mark->theory_marks) : '—' }}</strong></td>
+                                            <td><strong>{{ $mark ? $partCell($module, $formatMarks($mark->practical_marks)) : '—' }}</strong></td>
+                                            <td><strong>{{ $mark ? $formatMarks($mark->marks) : 'Awaiting' }}</strong></td>
                                         </tr>
                                     @endforeach
+                                    <tr class="marksheet__total">
+                                        <td class="marksheet__subject">Total</td>
+                                        <td>{{ $modules->sum('theory_max_marks') }}</td>
+                                        <td>{{ $modules->sum('practical_max_marks') }}</td>
+                                        <td>{{ $modules->sum('theory_pass_marks') }}</td>
+                                        <td>{{ $modules->sum('practical_pass_marks') }}</td>
+                                        <td>{{ $isComplete ? $formatMarks($obtained('theory')) : '—' }}</td>
+                                        <td>{{ $isComplete ? $formatMarks($obtained('practical')) : '—' }}</td>
+                                        <td>{{ $grandObtained }}</td>
+                                    </tr>
+                                    <tr class="marksheet__grand">
+                                        <td class="marksheet__subject">Grand Total</td>
+                                        <td colspan="2">{{ $modules->sum('max_marks') }}</td>
+                                        <td colspan="2">{{ $modules->sum('pass_marks') }}</td>
+                                        <td colspan="2">{{ $grandObtained }}</td>
+                                        <td></td>
+                                    </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <footer class="marksheet__summary">
+                            <span>Result: <strong>{{ $enrollment->result ? Str::upper($enrollment->result->label()) : 'Awaited' }}</strong></span>
+                            <span>Percentage <strong>{{ $enrollment->percentage !== null ? $formatMarks($enrollment->percentage).'%' : '—' }}</strong></span>
+                            <span>Grade: <strong>{{ $enrollment->final_grade ?: 'Awaited' }}</strong></span>
+                        </footer>
+                        <div class="marksheet-download no-print">
+                            <span class="marksheet-download__icon"><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i></span>
+                            <div class="marksheet-download__text">
+                                <strong>Your marksheet is ready</strong>
+                                <span>Download a PDF copy of your result to save or print.</span>
+                            </div>
+                            <a href="{{ $marksheetUrl }}" class="marksheet-download__btn">
+                                <i class="bi bi-download" aria-hidden="true"></i> Download result
+                            </a>
                         </div>
                     </article>
                 @endif
@@ -152,6 +150,7 @@
         </section>
     @endif
 
+    @unless ($searched && $enrollment)
     <section @class(['lookup-section', 'no-print', 'bg-ivory' => $searched])>
         <div class="oxf-wrap">
             <div class="lookup-card" data-animate>
@@ -210,4 +209,5 @@
             </div>
         </div>
     </section>
+    @endunless
 </x-layouts.public>

@@ -26,7 +26,10 @@ class ResultService
         $modules ??= $enrollment->course->modules()->get();
         $marks = $enrollment->marks()->get()->keyBy('course_module_id');
 
-        $result = $this->compute($modules, $marks->map(fn ($mark) => (float) $mark->marks)->all());
+        $result = $this->compute($modules, $marks->map(fn ($mark) => [
+            'theory' => (float) $mark->theory_marks,
+            'practical' => (float) $mark->practical_marks,
+        ])->all());
 
         $enrollment->forceFill([
             'total_marks' => $result['total'],
@@ -53,9 +56,10 @@ class ResultService
 
     /**
      * Compute a result. It is only final when every module has marks.
+     * A module is passed only when both its theory and practical pass marks are reached.
      *
      * @param  Collection<int, CourseModule>  $modules
-     * @param  array<int, float>  $marksByModule
+     * @param  array<int, array{theory: float, practical: float}>  $marksByModule
      * @return array{total: float|null, max_total: int|null, percentage: float|null, result: ResultStatus|null, grade: string|null, complete: bool}
      */
     public function compute(Collection $modules, array $marksByModule): array
@@ -72,11 +76,14 @@ class ResultService
             return $empty;
         }
 
-        $total = round($modules->sum(fn (CourseModule $module) => $marksByModule[$module->id]), 2);
+        $total = round($modules->sum(fn (CourseModule $module) => $marksByModule[$module->id]['theory'] + $marksByModule[$module->id]['practical']), 2);
         $maxTotal = (int) $modules->sum('max_marks');
         $percentage = $maxTotal > 0 ? round($total / $maxTotal * 100, 2) : 0.0;
 
-        $passedEveryModule = $modules->every(fn (CourseModule $module) => $marksByModule[$module->id] >= $module->pass_marks);
+        $passedEveryModule = $modules->every(fn (CourseModule $module) => $module->isPassedBy(
+            $marksByModule[$module->id]['theory'],
+            $marksByModule[$module->id]['practical'],
+        ));
         $grade = $passedEveryModule ? $this->gradeFor($percentage) : null;
         $passed = $passedEveryModule && $grade !== null;
 

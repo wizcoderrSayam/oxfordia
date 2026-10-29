@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Public;
 use App\Enums\EnrollmentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Enrollment;
+use App\Services\MarksheetPdfService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -55,7 +57,7 @@ class ResultController extends Controller
             ->where('enrollment_number', $rollNumber)
             ->where('status', '!=', EnrollmentStatus::Withdrawn)
             ->whereHas('student', fn (Builder $query) => $query->whereDate('date_of_birth', $dateOfBirth->toDateString()))
-            ->with(['student', 'course.modules', 'marks', 'validCertificate'])
+            ->with(['student', 'course.modules', 'marks'])
             ->first();
 
         return view('public.results', [
@@ -64,6 +66,17 @@ class ResultController extends Controller
             'rollNumber' => $rollNumber,
             'dateOfBirth' => $dateOfBirth,
         ]);
+    }
+
+    /**
+     * Download the marksheet PDF. Only reachable through the short-lived signed
+     * link printed on a successful lookup.
+     */
+    public function marksheet(Enrollment $enrollment, MarksheetPdfService $pdf): Response
+    {
+        abort_if($enrollment->status === EnrollmentStatus::Withdrawn, 404);
+
+        return $pdf->download($enrollment);
     }
 
     /**

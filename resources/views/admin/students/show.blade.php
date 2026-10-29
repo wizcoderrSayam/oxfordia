@@ -62,6 +62,7 @@
                     </div>
                 </div>
                 <dl class="mt-4 divide-y divide-slate-100">
+                    <x-dl-row label="Father's name">{{ $student->father_name }}</x-dl-row>
                     <x-dl-row label="Email">{{ $student->email }}</x-dl-row>
                     <x-dl-row label="Phone">{{ $student->phone }}</x-dl-row>
                     <x-dl-row label="Date of birth">{{ $student->date_of_birth?->format('d M Y') }}</x-dl-row>

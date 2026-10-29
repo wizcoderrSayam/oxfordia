@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Notification as NotificationSender;
 use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
-    'full_name', 'email', 'phone', 'date_of_birth', 'gender', 'address',
+    'full_name', 'father_name', 'email', 'phone', 'date_of_birth', 'gender', 'address',
     'admission_date', 'status', 'internal_notes',
 ])]
 #[Hidden(['internal_notes'])]

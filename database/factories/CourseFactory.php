@@ -66,4 +66,23 @@ class CourseFactory extends Factory
             }
         });
     }
+
+    /**
+     * Add assessment modules with separate theory and practical marks after creating the course.
+     */
+    public function withTheoryAndPracticalModules(int $count = 1, int $theoryMax = 70, int $practicalMax = 30, int $theoryPass = 28, int $practicalPass = 12): static
+    {
+        return $this->afterCreating(function (Course $course) use ($count, $theoryMax, $practicalMax, $theoryPass, $practicalPass) {
+            foreach (range(1, $count) as $index) {
+                $course->modules()->create([
+                    'name' => "Module {$index}",
+                    'theory_max_marks' => $theoryMax,
+                    'practical_max_marks' => $practicalMax,
+                    'theory_pass_marks' => $theoryPass,
+                    'practical_pass_marks' => $practicalPass,
+                    'sort_order' => $index,
+                ]);
+            }
+        });
+    }
 }

@@ -20,13 +20,13 @@
                     @php($mark = $marks->get($module->id))
                     <tr>
                         <td class="font-medium text-slate-900">{{ $module->name }}</td>
-                        <td class="text-right">{{ $module->max_marks }}</td>
-                        <td class="text-right">{{ $module->pass_marks }}</td>
-                        <td class="text-right font-semibold">{{ $mark ? rtrim(rtrim($mark->marks, '0'), '.') : '—' }}</td>
+                        <td class="text-right">{{ $module->max_marks }}@if ($module->hasPractical())<span class="block text-xs text-slate-500">Th {{ $module->theory_max_marks }} + Pr {{ $module->practical_max_marks }}</span>@endif</td>
+                        <td class="text-right">{{ $module->pass_marks }}@if ($module->hasPractical())<span class="block text-xs text-slate-500">Th {{ $module->theory_pass_marks }} + Pr {{ $module->practical_pass_marks }}</span>@endif</td>
+                        <td class="text-right font-semibold">{{ $mark ? rtrim(rtrim($mark->marks, '0'), '.') : '—' }}@if ($mark && $module->hasPractical())<span class="block text-xs font-normal text-slate-500">Th {{ rtrim(rtrim($mark->theory_marks, '0'), '.') }} + Pr {{ rtrim(rtrim($mark->practical_marks, '0'), '.') }}</span>@endif</td>
                         <td>
                             @if (! $mark)
                                 <span class="text-slate-400">Awaiting marks</span>
-                            @elseif ((float) $mark->marks >= $module->pass_marks)
+                            @elseif ($mark->isPassed($module))
                                 <x-badge color="green">Passed</x-badge>
                             @else
                                 <x-badge color="red">Not passed</x-badge>

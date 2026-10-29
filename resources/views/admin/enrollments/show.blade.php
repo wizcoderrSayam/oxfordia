@@ -25,9 +25,9 @@
                                 @php($mark = $marks->get($module->id))
                                 <tr>
                                     <td class="font-medium text-slate-900">{{ $module->name }}</td>
-                                    <td class="text-right">{{ $module->max_marks }}</td>
-                                    <td class="text-right">{{ $module->pass_marks }}</td>
-                                    <td class="text-right font-semibold {{ $mark && (float) $mark->marks < $module->pass_marks ? 'text-red-600' : '' }}">{{ $mark ? rtrim(rtrim($mark->marks, '0'), '.') : '—' }}</td>
+                                    <td class="text-right">{{ $module->max_marks }}@if ($module->hasPractical())<span class="block text-xs text-slate-500">Th {{ $module->theory_max_marks }} + Pr {{ $module->practical_max_marks }}</span>@endif</td>
+                                    <td class="text-right">{{ $module->pass_marks }}@if ($module->hasPractical())<span class="block text-xs text-slate-500">Th {{ $module->theory_pass_marks }} + Pr {{ $module->practical_pass_marks }}</span>@endif</td>
+                                    <td class="text-right font-semibold {{ $mark && ! $mark->isPassed($module) ? 'text-red-600' : '' }}">{{ $mark ? rtrim(rtrim($mark->marks, '0'), '.') : '—' }}@if ($mark && $module->hasPractical())<span class="block text-xs font-normal text-slate-500">Th {{ rtrim(rtrim($mark->theory_marks, '0'), '.') }} + Pr {{ rtrim(rtrim($mark->practical_marks, '0'), '.') }}</span>@endif</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="4"><x-empty-state icon="layers" title="No modules defined for this course" /></td></tr>

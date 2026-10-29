@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Student;
+use App\Services\ResultService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class ResultLookupTest extends TestCase
@@ -52,17 +54,66 @@ class ResultLookupTest extends TestCase
             ->assertSee('name="dob_year"', false);
     }
 
-    public function test_matching_roll_number_and_date_of_birth_show_the_result(): void
+    public function test_matching_roll_number_and_date_of_birth_show_the_result_and_marksheet(): void
     {
-        $this->enrollment->marks()->create(['course_module_id' => $this->course->modules()->value('id'), 'marks' => 87]);
+        [$firstModule, $secondModule] = $this->course->modules()->orderBy('sort_order')->get();
+        $this->enrollment->marks()->create(['course_module_id' => $firstModule->id, 'marks' => 87]);
 
         $this->post(route('results.lookup'), $this->details())
             ->assertOk()
             ->assertSee('Asha Verma')
             ->assertSee('ENR-2026-00042')
             ->assertSee('Python Programming')
+            ->assertSee('Marksheet')
             ->assertSee('A+')
-            ->assertDontSee('Module-wise marks');
+            ->assertSeeInOrder([$firstModule->name, '87', $secondModule->name, 'Awaiting'])
+            ->assertDontSee('Check another result');
+    }
+
+    public function test_the_marksheet_shows_theory_and_practical_marks_with_totals(): void
+    {
+        $course = Course::factory()->withTheoryAndPracticalModules()->create();
+        $module = $course->modules()->firstOrFail();
+        $this->enrollment->update(['course_id' => $course->id]);
+        $this->enrollment->marks()->create(['course_module_id' => $module->id, 'theory_marks' => 50, 'practical_marks' => 26]);
+        app(ResultService::class)->recalculate($this->enrollment->fresh());
+
+        $this->post(route('results.lookup'), $this->details())
+            ->assertOk()
+            ->assertSeeInOrder(['Max. Marks', 'Min. Marks', 'Marks Obt.', 'Total Marks'])
+            ->assertSeeInOrder([$module->name, '70', '30', '28', '12', '50', '26', '76'])
+            ->assertSeeInOrder(['Grand Total', '100', '40', '76'])
+            ->assertSeeInOrder(['Result:', 'PASS', 'Percentage', '76%', 'Grade:']);
+    }
+
+    public function test_the_result_page_links_to_the_marksheet_download(): void
+    {
+        $this->post(route('results.lookup'), $this->details())
+            ->assertOk()
+            ->assertSee('Download result')
+            ->assertSee('/results/marksheet/'.$this->enrollment->id, false)
+            ->assertSee('signature=', false);
+    }
+
+    public function test_the_marksheet_downloads_as_a_pdf_with_a_valid_signed_link(): void
+    {
+        $this->get(route('results.marksheet', $this->enrollment))->assertForbidden();
+
+        $this->get(URL::temporarySignedRoute('results.marksheet', now()->subMinute(), ['enrollment' => $this->enrollment]))
+            ->assertForbidden();
+
+        $this->get(URL::temporarySignedRoute('results.marksheet', now()->addMinutes(30), ['enrollment' => $this->enrollment]))
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf')
+            ->assertDownload('ENR-2026-00042-marksheet.pdf');
+    }
+
+    public function test_a_withdrawn_enrollment_marksheet_cannot_be_downloaded(): void
+    {
+        $this->enrollment->update(['status' => 'withdrawn']);
+
+        $this->get(URL::temporarySignedRoute('results.marksheet', now()->addMinutes(30), ['enrollment' => $this->enrollment]))
+            ->assertNotFound();
     }
 
     public function test_only_the_course_for_that_roll_number_is_shown(): void
@@ -88,6 +139,7 @@ class ResultLookupTest extends TestCase
             ->assertOk()
             ->assertSee('No matching record found')
             ->assertSee('18 May 2004')
+            ->assertSee('Check another result')
             ->assertDontSee('Asha Verma');
     }
 

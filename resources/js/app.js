@@ -94,30 +94,37 @@ new MutationObserver(() => {
  */
 Alpine.data('marksRow', (modules, initial, bands) => ({
     marks: initial,
+    parts(module) {
+        return ['theory', 'practical'].filter((part) => module[part].max > 0);
+    },
+    filled(value) {
+        return value !== '' && value !== null && value !== undefined;
+    },
     get complete() {
-        return modules.every((m) => this.marks[m.id] !== '' && this.marks[m.id] !== null && this.marks[m.id] !== undefined);
+        return modules.every((m) => this.parts(m).every((part) => this.filled(this.marks[m.id][part])));
     },
     get total() {
-        return modules.reduce((sum, m) => sum + (parseFloat(this.marks[m.id]) || 0), 0);
+        return modules.reduce((sum, m) => sum + this.parts(m).reduce((partSum, part) => partSum + (parseFloat(this.marks[m.id][part]) || 0), 0), 0);
     },
     get max() {
-        return modules.reduce((sum, m) => sum + m.max, 0);
+        return modules.reduce((sum, m) => sum + m.theory.max + m.practical.max, 0);
     },
     get percentage() {
         return this.max ? (this.total / this.max) * 100 : 0;
     },
     get grade() {
         if (!this.complete) return '—';
-        const failedModule = modules.some((m) => parseFloat(this.marks[m.id]) < m.pass);
+        const failedModule = modules.some((m) => this.parts(m).some((part) => parseFloat(this.marks[m.id][part]) < m[part].pass));
         if (failedModule) return 'Fail';
         const band = bands.find((b) => this.percentage >= b.min);
         return band ? band.grade : 'Fail';
     },
-    invalid(module) {
-        const value = this.marks[module.id];
-        if (value === '' || value === null || value === undefined) return false;
+    invalid(moduleId, part) {
+        const module = modules.find((m) => m.id === moduleId);
+        const value = this.marks[moduleId][part];
+        if (!this.filled(value)) return false;
         const number = parseFloat(value);
-        return Number.isNaN(number) || number < 0 || number > module.max;
+        return Number.isNaN(number) || number < 0 || number > module[part].max;
     },
 }));
 

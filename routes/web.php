@@ -35,6 +35,9 @@ Route::get('/results', [Public\ResultController::class, 'index'])->name('results
 Route::post('/results', [Public\ResultController::class, 'lookup'])
     ->middleware('throttle:result-lookup')
     ->name('results.lookup');
+Route::get('/results/marksheet/{enrollment}', [Public\ResultController::class, 'marksheet'])
+    ->middleware('signed')
+    ->name('results.marksheet');
 Route::get('/results/document/{enrollment}', [Public\ResultController::class, 'document'])
     ->middleware('signed')
     ->name('results.document');

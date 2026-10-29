@@ -22,14 +22,14 @@
             <section id="modules" class="card overflow-hidden">
                 <div class="border-b border-slate-100 px-6 py-4">
                     <h2 class="text-base font-semibold text-slate-900">Assessment modules</h2>
-                    <p class="text-sm text-slate-500">Students must reach the pass mark in every module. Max and pass marks lock once marks are recorded.</p>
+                    <p class="text-sm text-slate-500">Students must reach the theory and practical pass marks in every module. Set practical max to 0 for a theory-only module. Max and pass marks lock once marks are recorded.</p>
                 </div>
                 @if ($errors->module->any())
                     <x-callout tone="danger" class="mx-6 mt-4">{{ $errors->module->first() }}</x-callout>
                 @endif
                 <div class="overflow-x-auto">
                     <table class="table-base">
-                        <thead><tr><th>#</th><th>Module</th><th class="text-right">Max</th><th class="text-right">Pass</th><th><span class="sr-only">Actions</span></th></tr></thead>
+                        <thead><tr><th>#</th><th>Module</th><th class="text-right">Max <span class="font-normal normal-case">(Th + Pr)</span></th><th class="text-right">Pass <span class="font-normal normal-case">(Th + Pr)</span></th><th><span class="sr-only">Actions</span></th></tr></thead>
                         <tbody>
                             @forelse ($course->modules as $module)
                                 @php($locked = $module->marks_count > 0)
@@ -41,15 +41,17 @@
                                         <form x-show="editing" x-cloak method="POST" action="{{ route('admin.modules.update', $module) }}" class="flex flex-wrap items-end gap-2">
                                             @csrf @method('PUT')
                                             <input name="name" value="{{ $module->name }}" class="form-input w-48" aria-label="Module name" required>
-                                            <input name="max_marks" type="number" min="1" value="{{ $module->max_marks }}" class="form-input w-20" aria-label="Max marks" @disabled($locked) required>
-                                            <input name="pass_marks" type="number" min="0" value="{{ $module->pass_marks }}" class="form-input w-20" aria-label="Pass marks" @disabled($locked) required>
+                                            <input name="theory_max_marks" type="number" min="0" value="{{ $module->theory_max_marks }}" class="form-input w-20" aria-label="Theory max marks" title="Theory max" @disabled($locked) required>
+                                            <input name="practical_max_marks" type="number" min="0" value="{{ $module->practical_max_marks }}" class="form-input w-20" aria-label="Practical max marks" title="Practical max" @disabled($locked) required>
+                                            <input name="theory_pass_marks" type="number" min="0" value="{{ $module->theory_pass_marks }}" class="form-input w-20" aria-label="Theory pass marks" title="Theory pass" @disabled($locked) required>
+                                            <input name="practical_pass_marks" type="number" min="0" value="{{ $module->practical_pass_marks }}" class="form-input w-20" aria-label="Practical pass marks" title="Practical pass" @disabled($locked) required>
                                             <input name="sort_order" type="number" min="0" value="{{ $module->sort_order }}" class="form-input w-20" aria-label="Order">
                                             <button type="submit" class="btn-primary btn-sm">Save</button>
                                             <button type="button" class="btn-secondary btn-sm" @click="editing = false">Cancel</button>
                                         </form>
                                     </td>
-                                    <td class="text-right" x-show="!editing">{{ $module->max_marks }}</td>
-                                    <td class="text-right" x-show="!editing">{{ $module->pass_marks }}</td>
+                                    <td class="text-right" x-show="!editing">{{ $module->max_marks }} <span class="block text-xs text-slate-500">{{ $module->theory_max_marks }} + {{ $module->practical_max_marks }}</span></td>
+                                    <td class="text-right" x-show="!editing">{{ $module->pass_marks }} <span class="block text-xs text-slate-500">{{ $module->theory_pass_marks }} + {{ $module->practical_pass_marks }}</span></td>
                                     <td x-show="!editing">
                                         <div class="flex justify-end gap-2">
                                             <button type="button" class="btn-secondary btn-sm" @click="editing = true"><x-icon name="pencil" /></button>
@@ -67,12 +69,14 @@
                         </tbody>
                     </table>
                 </div>
-                <form method="POST" action="{{ route('admin.courses.modules.store', $course) }}" class="grid gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4 sm:grid-cols-6 sm:items-end">
+                <form method="POST" action="{{ route('admin.courses.modules.store', $course) }}" class="grid grid-cols-2 gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4 sm:grid-cols-6 sm:items-end">
                     @csrf
-                    <div class="sm:col-span-3"><label for="module-name" class="form-label">New module</label><input id="module-name" name="name" class="form-input" placeholder="e.g. HTML & CSS Fundamentals" required></div>
-                    <div><label for="module-max" class="form-label">Max</label><input id="module-max" name="max_marks" type="number" min="1" value="100" class="form-input" required></div>
-                    <div><label for="module-pass" class="form-label">Pass</label><input id="module-pass" name="pass_marks" type="number" min="0" value="40" class="form-input" required></div>
-                    <button type="submit" class="btn-primary"><x-icon name="plus" /> Add</button>
+                    <div class="col-span-2 sm:col-span-6"><label for="module-name" class="form-label">New module</label><input id="module-name" name="name" class="form-input" placeholder="e.g. HTML & CSS Fundamentals" required></div>
+                    <div><label for="module-theory-max" class="form-label">Theory max</label><input id="module-theory-max" name="theory_max_marks" type="number" min="0" value="70" class="form-input" required></div>
+                    <div><label for="module-practical-max" class="form-label">Practical max</label><input id="module-practical-max" name="practical_max_marks" type="number" min="0" value="30" class="form-input" required></div>
+                    <div><label for="module-theory-pass" class="form-label">Theory pass</label><input id="module-theory-pass" name="theory_pass_marks" type="number" min="0" value="28" class="form-input" required></div>
+                    <div><label for="module-practical-pass" class="form-label">Practical pass</label><input id="module-practical-pass" name="practical_pass_marks" type="number" min="0" value="12" class="form-input" required></div>
+                    <button type="submit" class="btn-primary col-span-2"><x-icon name="plus" /> Add</button>
                 </form>
             </section>
 

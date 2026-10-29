@@ -10,6 +10,7 @@ use App\Services\ResultService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class CourseModuleController extends Controller
 {
@@ -45,7 +46,7 @@ class CourseModuleController extends Controller
         DB::transaction(function () use ($module, $validated) {
             $module->update($validated);
 
-            if ($module->wasChanged(['max_marks', 'pass_marks'])) {
+            if ($module->wasChanged(['theory_max_marks', 'practical_max_marks', 'theory_pass_marks', 'practical_pass_marks'])) {
                 $this->results->recalculateCourse($module->course);
             }
         });
@@ -76,16 +77,28 @@ class CourseModuleController extends Controller
     private function validateModule(Request $request, ?CourseModule $module = null): array
     {
         $locked = $module?->isLocked() ?? false;
+        $markRules = fn (string $max = 'max:1000'): array => $locked ? ['prohibited'] : ['required', 'integer', 'min:0', $max];
+        $locks = [];
+
+        foreach (['theory_max_marks', 'practical_max_marks', 'theory_pass_marks', 'practical_pass_marks'] as $field) {
+            $locks["$field.prohibited"] = 'Max and pass marks are locked because marks have been recorded.';
+        }
 
         $validated = $request->validateWithBag('module', [
             'name' => ['required', 'string', 'max:255'],
-            'max_marks' => $locked ? ['prohibited'] : ['required', 'integer', 'min:1', 'max:1000'],
-            'pass_marks' => $locked ? ['prohibited'] : ['required', 'integer', 'min:0', 'lte:max_marks'],
+            'theory_max_marks' => $markRules(),
+            'practical_max_marks' => $markRules(),
+            'theory_pass_marks' => $markRules('lte:theory_max_marks'),
+            'practical_pass_marks' => $markRules('lte:practical_max_marks'),
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:1000'],
-        ], [
-            'max_marks.prohibited' => 'Max marks are locked because marks have been recorded.',
-            'pass_marks.prohibited' => 'Pass marks are locked because marks have been recorded.',
+        ], $locks + [
+            'theory_pass_marks.lte' => 'Theory pass marks cannot be more than theory max marks.',
+            'practical_pass_marks.lte' => 'Practical pass marks cannot be more than practical max marks.',
         ]);
+
+        if (! $locked && (int) $validated['theory_max_marks'] + (int) $validated['practical_max_marks'] < 1) {
+            throw ValidationException::withMessages(['theory_max_marks' => 'A module needs at least 1 theory or practical mark.'])->errorBag('module');
+        }
 
         return array_filter($validated, fn ($value) => $value !== null);
     }

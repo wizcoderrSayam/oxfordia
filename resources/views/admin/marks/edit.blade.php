@@ -1,5 +1,5 @@
 <x-layouts.admin :title="'Marks · '.$course->title">
-    <x-page-header :title="'Marks: '.$course->title" subtitle="Enter marks per module. Totals, percentage and grade update as you type. Rows with a valid certificate are locked." :back="route('admin.courses.show', $course)" />
+    <x-page-header :title="'Marks: '.$course->title" subtitle="Enter theory (Th) and practical (Pr) marks per module. Totals, percentage and grade update as you type. Rows with a valid certificate are locked." :back="route('admin.courses.show', $course)" />
 
     @if ($course->modules->isEmpty())
         <div class="card">
@@ -15,7 +15,12 @@
         </div>
     @else
         @php
-            $moduleData = $course->modules->map(fn ($m) => ['id' => $m->id, 'max' => $m->max_marks, 'pass' => $m->pass_marks])->values();
+            $moduleData = $course->modules->map(fn ($m) => [
+                'id' => $m->id,
+                'theory' => ['max' => $m->theory_max_marks, 'pass' => $m->theory_pass_marks],
+                'practical' => ['max' => $m->practical_max_marks, 'pass' => $m->practical_pass_marks],
+            ])->values();
+            $partsFor = fn ($module) => array_filter(['theory' => 'Th', 'practical' => 'Pr'], fn ($label, $part) => $module->{$part.'_max_marks'} > 0, ARRAY_FILTER_USE_BOTH);
         @endphp
         <form method="POST" action="{{ route('admin.courses.marks.update', $course) }}" x-data="{ submitting: false }" @submit="submitting = true">
             @csrf
@@ -26,7 +31,11 @@
                         <tr>
                             <th class="sticky left-0 z-10 bg-slate-50">Student</th>
                             @foreach ($course->modules as $module)
-                                <th class="min-w-28 text-center">{{ $module->name }}<span class="block font-normal normal-case">/{{ $module->max_marks }} (pass {{ $module->pass_marks }})</span></th>
+                                <th class="min-w-28 text-center">{{ $module->name }}
+                                    @foreach ($partsFor($module) as $part => $label)
+                                        <span class="block font-normal normal-case">{{ $label }} /{{ $module->{$part.'_max_marks'} }} (pass {{ $module->{$part.'_pass_marks'} }})</span>
+                                    @endforeach
+                                </th>
                             @endforeach
                             <th class="text-right">Total</th>
                             <th class="text-right">%</th>
@@ -38,10 +47,12 @@
                             @php
                                 $existing = $enrollment->marks->keyBy('course_module_id');
                                 $initial = $course->modules->mapWithKeys(function ($module) use ($enrollment, $existing) {
-                                    $old = old("marks.{$enrollment->id}.{$module->id}");
-                                    $value = $old ?? optional($existing->get($module->id))->marks;
+                                    $mark = $existing->get($module->id);
+                                    $value = fn (string $part) => old("marks.{$enrollment->id}.{$module->id}.{$part}") ?? $mark?->{$part.'_marks'};
 
-                                    return [$module->id => $value === null ? '' : (string) (float) $value];
+                                    return [$module->id => collect(['theory', 'practical'])->mapWithKeys(fn ($part) => [
+                                        $part => $value($part) === null ? '' : (string) (float) $value($part),
+                                    ])];
                                 });
                                 $locked = (bool) $enrollment->validCertificate;
                             @endphp
@@ -53,12 +64,18 @@
                                 </td>
                                 @foreach ($course->modules as $module)
                                     <td class="text-center">
-                                        <label for="m-{{ $enrollment->id }}-{{ $module->id }}" class="sr-only">{{ $enrollment->student->full_name }} – {{ $module->name }}</label>
-                                        <input id="m-{{ $enrollment->id }}-{{ $module->id }}" type="number" step="0.01" min="0" max="{{ $module->max_marks }}" inputmode="decimal"
-                                               @unless ($locked) name="marks[{{ $enrollment->id }}][{{ $module->id }}]" @endunless
-                                               x-model="marks[{{ $module->id }}]"
-                                               :class="invalid({ id: {{ $module->id }}, max: {{ $module->max_marks }} }) ? 'border-red-500 ring-2 ring-red-200' : ''"
-                                               class="form-input mx-auto w-24 text-center" @disabled($locked)>
+                                        <div class="flex justify-center gap-1">
+                                            @foreach ($partsFor($module) as $part => $label)
+                                                <div>
+                                                    <label for="m-{{ $enrollment->id }}-{{ $module->id }}-{{ $part }}" class="block text-xs text-slate-500">{{ $label }}<span class="sr-only"> marks for {{ $enrollment->student->full_name }} – {{ $module->name }}</span></label>
+                                                    <input id="m-{{ $enrollment->id }}-{{ $module->id }}-{{ $part }}" type="number" step="0.01" min="0" max="{{ $module->{$part.'_max_marks'} }}" inputmode="decimal"
+                                                           @unless ($locked) name="marks[{{ $enrollment->id }}][{{ $module->id }}][{{ $part }}]" @endunless
+                                                           x-model="marks[{{ $module->id }}].{{ $part }}"
+                                                           :class="invalid({{ $module->id }}, '{{ $part }}') ? 'border-red-500 ring-2 ring-red-200' : ''"
+                                                           class="form-input w-20 text-center" @disabled($locked)>
+                                                </div>
+                                            @endforeach
+                                        </div>
                                         @error("marks.{$enrollment->id}.{$module->id}") <p class="form-error text-xs">{{ $message }}</p> @enderror
                                     </td>
                                 @endforeach

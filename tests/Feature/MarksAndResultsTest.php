@@ -105,8 +105,8 @@ class MarksAndResultsTest extends TestCase
         $module = $this->course->modules()->first();
         $this->saveMarks([70, 70]);
 
-        $this->put(route('admin.modules.update', $module), ['name' => 'Renamed', 'max_marks' => 50, 'pass_marks' => 10])
-            ->assertSessionHasErrors(['max_marks', 'pass_marks'], errorBag: 'module');
+        $this->put(route('admin.modules.update', $module), ['name' => 'Renamed', 'theory_max_marks' => 50, 'theory_pass_marks' => 10])
+            ->assertSessionHasErrors(['theory_max_marks', 'theory_pass_marks'], errorBag: 'module');
 
         $this->put(route('admin.modules.update', $module), ['name' => 'Renamed'])->assertSessionHasNoErrors();
         $this->assertSame('Renamed', $module->fresh()->name);
@@ -114,5 +114,79 @@ class MarksAndResultsTest extends TestCase
 
         $this->delete(route('admin.modules.destroy', $module))->assertSessionHas('error');
         $this->assertModelExists($module);
+    }
+
+    public function test_a_module_can_be_added_with_theory_and_practical_marks(): void
+    {
+        $this->post(route('admin.courses.modules.store', $this->course), [
+            'name' => 'Office Tools',
+            'theory_max_marks' => 70,
+            'practical_max_marks' => 30,
+            'theory_pass_marks' => 28,
+            'practical_pass_marks' => 12,
+        ])->assertSessionHasNoErrors();
+
+        $module = $this->course->modules()->where('name', 'Office Tools')->firstOrFail();
+        $this->assertSame(100, $module->max_marks);
+        $this->assertSame(40, $module->pass_marks);
+    }
+
+    public function test_a_pass_mark_cannot_exceed_its_max(): void
+    {
+        $this->post(route('admin.courses.modules.store', $this->course), [
+            'name' => 'Office Tools',
+            'theory_max_marks' => 70,
+            'practical_max_marks' => 30,
+            'theory_pass_marks' => 28,
+            'practical_pass_marks' => 31,
+        ])->assertSessionHasErrors('practical_pass_marks', errorBag: 'module');
+    }
+
+    public function test_theory_and_practical_marks_are_saved_and_totalled(): void
+    {
+        $course = Course::factory()->withTheoryAndPracticalModules()->create();
+        $enrollment = Enrollment::factory()->create(['course_id' => $course->id]);
+        $module = $course->modules()->firstOrFail();
+
+        $this->put(route('admin.courses.marks.update', $course), [
+            'marks' => [$enrollment->id => [$module->id => ['theory' => 50, 'practical' => 26]]],
+        ])->assertSessionHasNoErrors();
+
+        $mark = $enrollment->marks()->firstOrFail();
+        $this->assertEquals(50, (float) $mark->theory_marks);
+        $this->assertEquals(26, (float) $mark->practical_marks);
+        $this->assertEquals(76, (float) $mark->marks);
+
+        $enrollment->refresh();
+        $this->assertSame(ResultStatus::Pass, $enrollment->result);
+        $this->assertEquals(76.0, (float) $enrollment->percentage);
+    }
+
+    public function test_missing_the_practical_pass_mark_fails_the_module(): void
+    {
+        $course = Course::factory()->withTheoryAndPracticalModules()->create();
+        $enrollment = Enrollment::factory()->create(['course_id' => $course->id]);
+        $module = $course->modules()->firstOrFail();
+
+        $this->put(route('admin.courses.marks.update', $course), [
+            'marks' => [$enrollment->id => [$module->id => ['theory' => 70, 'practical' => 11]]],
+        ]);
+
+        $this->assertSame(ResultStatus::Fail, $enrollment->fresh()->result);
+    }
+
+    public function test_theory_and_practical_marks_must_both_be_entered_and_in_range(): void
+    {
+        $course = Course::factory()->withTheoryAndPracticalModules()->create();
+        $enrollment = Enrollment::factory()->create(['course_id' => $course->id]);
+        $module = $course->modules()->firstOrFail();
+        $save = fn (array $parts) => $this->put(route('admin.courses.marks.update', $course), [
+            'marks' => [$enrollment->id => [$module->id => $parts]],
+        ]);
+
+        $save(['theory' => 50, 'practical' => ''])->assertSessionHasErrors("marks.{$enrollment->id}.{$module->id}");
+        $save(['theory' => 50, 'practical' => 31])->assertSessionHasErrors("marks.{$enrollment->id}.{$module->id}");
+
+        $this->assertDatabaseCount('enrollment_marks', 0);
     }
 }

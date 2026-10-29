@@ -29,6 +29,7 @@ class StudentRequest extends FormRequest
     {
         return [
             'full_name' => ['required', 'string', 'max:255'],
+            'father_name' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9+\-\s()]{7,20}$/'],
             'date_of_birth' => ['nullable', 'date', 'before:today', 'after:1900-01-01'],

@@ -19,6 +19,7 @@ class StudentFactory extends Factory
         return [
             'registration_number' => 'OXF-TEST-'.fake()->unique()->numerify('######'),
             'full_name' => fake()->name(),
+            'father_name' => fake()->name('male'),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->numerify('98########'),
             'date_of_birth' => fake()->dateTimeBetween('-35 years', '-17 years')->format('Y-m-d'),

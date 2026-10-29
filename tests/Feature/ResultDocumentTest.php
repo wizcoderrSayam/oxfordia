@@ -25,7 +25,7 @@ class ResultDocumentTest extends TestCase
 
         Storage::fake('local');
 
-        $student = Student::factory()->create(['full_name' => 'Rachhpal Singh', 'date_of_birth' => '2001-03-09']);
+        $student = Student::factory()->create(['full_name' => 'Rachhpal Singh', 'father_name' => 'Gurmeet Singh', 'date_of_birth' => '2001-03-09']);
         $course = Course::factory()->create(['title' => 'ADCA', 'duration_value' => 2, 'duration_unit' => 'years']);
         $this->enrollment = Enrollment::factory()->passed('A')->create([
             'enrollment_number' => 'FGI/KH001/2023018',
@@ -97,7 +97,7 @@ class ResultDocumentTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_the_result_page_shows_the_details_and_the_document(): void
+    public function test_the_result_page_shows_the_details_but_not_the_uploaded_document(): void
     {
         $this->upload(UploadedFile::fake()->image('result.jpg'));
         auth()->logout();
@@ -105,22 +105,11 @@ class ResultDocumentTest extends TestCase
         $this->lookup()
             ->assertOk()
             ->assertSee('Statement of Result')
-            ->assertSee('FGI/KH001/2023018')
-            ->assertSee('Rachhpal Singh')
-            ->assertSee('01/07/2023 – 30/06/2025')
-            ->assertSee('ADCA')
-            ->assertSee('2 Years')
-            ->assertSee('Result document')
-            ->assertSee('/results/document/'.$this->enrollment->id, false)
-            ->assertSee('signature=', false);
-    }
-
-    public function test_the_result_page_explains_when_no_document_is_uploaded(): void
-    {
-        $this->lookup()
-            ->assertOk()
-            ->assertSee('Statement of Result')
-            ->assertSee('will appear here once the office uploads it');
+            ->assertSeeInOrder(['Enrollment No', 'FGI/KH001/2023018', 'Student Name', 'Rachhpal Singh', 'Father Name', 'Gurmeet Singh', 'Course', 'ADCA'])
+            ->assertDontSee('01/07/2023 – 30/06/2025')
+            ->assertDontSee('2 Years')
+            ->assertDontSee('Official copy')
+            ->assertDontSee('/results/document/'.$this->enrollment->id, false);
     }
 
     public function test_the_document_needs_a_valid_signed_link(): void
