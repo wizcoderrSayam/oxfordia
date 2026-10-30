@@ -15,6 +15,11 @@ class NumberSequenceService
         return $this->next('student', config('institute.prefixes.student'), 4);
     }
 
+    public function nextEmployeeNumber(): string
+    {
+        return $this->next('employee', config('institute.prefixes.employee'), 4);
+    }
+
     public function nextEnrollmentNumber(): string
     {
         return $this->next('enrollment', config('institute.prefixes.enrollment'), 5);

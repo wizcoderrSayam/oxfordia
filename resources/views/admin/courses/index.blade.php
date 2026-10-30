@@ -34,7 +34,7 @@
             </x-empty-state>
         @else
             <table class="table-base">
-                <thead><tr><th>Course</th><th>Category</th><th class="text-right">Fee</th><th class="text-right">Modules</th><th class="text-right">Enrollments</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr></thead>
+                <thead><tr><th>Course</th><th>Category</th><th class="text-right">Fee</th><th class="text-right">Modules</th><th class="text-right">Enrollments</th><th>Status</th><th class="text-right">Actions</th></tr></thead>
                 <tbody>
                     @foreach ($courses as $course)
                         <tr>
@@ -47,7 +47,20 @@
                             <td class="text-right">{{ $course->modules_count }}</td>
                             <td class="text-right">{{ $course->enrollments_count }}</td>
                             <td><x-status-badge :status="$course->status" /></td>
-                            <td class="text-right"><a href="{{ route('admin.courses.edit', $course) }}" class="btn-secondary btn-sm"><x-icon name="pencil" /> Edit</a></td>
+                            <td>
+                                <div class="flex justify-end gap-2">
+                                    <a href="{{ route('admin.courses.edit', $course) }}" class="btn-secondary btn-sm"><x-icon name="pencil" /> Edit</a>
+                                    @if ($course->orders_count === 0 && $course->certificates_count === 0)
+                                        <x-confirm :action="route('admin.courses.destroy', $course)" method="DELETE" title="Delete course?" :message="'“'.$course->title.'” ('.$course->course_code.') will be permanently deleted, along with its modules'.($course->enrollments_count > 0 ? ', '.trans_choice('{1}its enrollment|[2,*]all :count of its enrollments', $course->enrollments_count).', marks and result documents' : '').'. This cannot be undone.'" confirm-label="Delete course">
+                                            <x-slot:trigger><x-icon name="trash-2" /> Delete</x-slot:trigger>
+                                        </x-confirm>
+                                    @else
+                                        <span class="inline-block" title="Courses with an issued certificate or a payment order can't be deleted. Archive them instead.">
+                                            <button type="button" class="btn-danger btn-sm" disabled aria-disabled="true"><x-icon name="trash-2" /> Delete</button>
+                                        </span>
+                                    @endif
+                                </div>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>

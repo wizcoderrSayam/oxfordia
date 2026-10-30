@@ -1,8 +1,7 @@
 <x-layouts.admin title="Settings">
-    <x-page-header title="Institute settings" subtitle="Branding, contact details and certificate configuration used across the website and certificates." />
+    <x-page-header title="Institute settings" subtitle="Branding, contact details and certificate configuration used across the website and certificates. Grades are set under Grading." />
 
     @php
-        $bands = old('grade_bands', $values['grade_bands']);
         $images = [
             'logo' => ['label' => 'Logo', 'key' => 'logo_path'],
             'signature_1' => ['label' => 'Signatory 1 signature', 'key' => 'signatory_1_signature_path'],
@@ -10,7 +9,7 @@
         ];
     @endphp
 
-    <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" class="space-y-6" x-data="{ bands: @js(array_values($bands)), submitting: false }" @submit="submitting = true">
+    <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" class="space-y-6" x-data="{ submitting: false }" @submit="submitting = true">
         @csrf @method('PUT')
 
         <section class="card p-6">
@@ -65,22 +64,6 @@
             </div>
         </section>
 
-        <section class="card p-6">
-            <h2 class="text-base font-semibold text-slate-900">Grade bands</h2>
-            <p class="mt-1 text-sm text-slate-500">Students must pass every module. The overall percentage then maps to the highest band whose minimum it reaches; below the lowest band is a Fail. Changes apply to results calculated afterwards.</p>
-            @error('grade_bands') <p class="form-error">{{ $message }}</p> @enderror
-            @if ($errors->has('grade_bands.*'))<p class="form-error">{{ collect($errors->get('grade_bands.*'))->flatten()->first() }}</p>@endif
-            <div class="mt-4 space-y-3">
-                <template x-for="(band, index) in bands" :key="index">
-                    <div class="flex items-end gap-3">
-                        <div class="w-32"><label class="form-label" :for="'band-grade-' + index">Grade</label><input :id="'band-grade-' + index" :name="'grade_bands[' + index + '][grade]'" x-model="band.grade" class="form-input" required maxlength="20"></div>
-                        <div class="w-40"><label class="form-label" :for="'band-min-' + index">Minimum %</label><input :id="'band-min-' + index" type="number" step="0.01" min="0" max="100" :name="'grade_bands[' + index + '][min]'" x-model="band.min" class="form-input" required></div>
-                        <button type="button" class="btn-secondary" @click="bands.splice(index, 1)" x-show="bands.length > 1" aria-label="Remove band"><x-icon name="trash-2" /></button>
-                    </div>
-                </template>
-                <button type="button" class="btn-secondary btn-sm" @click="bands.push({ grade: '', min: '' })" x-show="bands.length < 10"><x-icon name="plus" /> Add band</button>
-            </div>
-        </section>
 
         <div class="flex justify-end">
             <button type="submit" class="btn-primary" :disabled="submitting">Save settings</button>

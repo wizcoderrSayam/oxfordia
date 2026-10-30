@@ -52,9 +52,6 @@ class SettingsController extends Controller
             'certificate_title' => ['required', 'string', 'max:80'],
             'certificate_footer' => ['nullable', 'string', 'max:300'],
             'accreditation_statement' => ['nullable', 'string', 'max:300'],
-            'grade_bands' => ['required', 'array', 'min:1', 'max:10'],
-            'grade_bands.*.grade' => ['required', 'string', 'max:20', 'distinct'],
-            'grade_bands.*.min' => ['required', 'numeric', 'min:0', 'max:100', 'distinct'],
             'logo' => $image,
             'signature_1' => $image,
             'signature_2' => $image,
@@ -62,15 +59,9 @@ class SettingsController extends Controller
             'remove.*' => ['in:'.implode(',', array_keys(self::IMAGES))],
         ], [
             'map_embed_url.starts_with' => 'Paste the "Embed a map" URL from Google Maps (it starts with https://www.google.com/maps/embed).',
-            'grade_bands.*.min.distinct' => 'Each grade band needs a different minimum percentage.',
         ]);
 
         $values = collect($validated)->except(array_merge(array_keys(self::IMAGES), ['remove']))->all();
-        $values['grade_bands'] = collect($validated['grade_bands'])
-            ->map(fn (array $band) => ['grade' => trim($band['grade']), 'min' => (float) $band['min']])
-            ->sortByDesc('min')
-            ->values()
-            ->all();
 
         $obsoleteFiles = [];
 

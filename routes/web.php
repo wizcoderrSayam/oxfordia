@@ -49,6 +49,11 @@ Route::middleware('throttle:verify-certificate')->group(function () {
         ->name('certificates.verify.show');
 });
 
+Route::get('/verify-employee', [Public\EmployeeVerificationController::class, 'index'])->name('employees.verify');
+Route::post('/verify-employee', [Public\EmployeeVerificationController::class, 'lookup'])
+    ->middleware('throttle:verify-employee')
+    ->name('employees.verify.lookup');
+
 /*
 |--------------------------------------------------------------------------
 | Authenticated landing
@@ -116,6 +121,8 @@ Route::middleware(['auth', 'backoffice'])->prefix('admin')->name('admin.')->grou
     Route::resource('students', Admin\StudentController::class);
     Route::post('students/{student}/invite', [Admin\StudentController::class, 'invite'])->name('students.invite');
 
+    Route::resource('employees', Admin\EmployeeController::class);
+
     Route::resource('enrollments', Admin\EnrollmentController::class)->except(['edit', 'destroy']);
     Route::post('enrollments/{enrollment}/result-document', [Admin\EnrollmentResultDocumentController::class, 'store'])->name('enrollments.result-document.store');
     Route::get('enrollments/{enrollment}/result-document', [Admin\EnrollmentResultDocumentController::class, 'show'])->name('enrollments.result-document.show');
@@ -132,9 +139,6 @@ Route::middleware(['auth', 'backoffice'])->prefix('admin')->name('admin.')->grou
         ->middleware('can:manage-certificates')
         ->name('certificates.revoke');
 
-    Route::get('orders', [Admin\OrderController::class, 'index'])->name('orders.index');
-    Route::get('orders/{order}', [Admin\OrderController::class, 'show'])->name('orders.show');
-
     Route::get('enquiries', [Admin\AdmissionEnquiryController::class, 'index'])->name('enquiries.index');
     Route::get('enquiries/{enquiry}', [Admin\AdmissionEnquiryController::class, 'show'])->name('enquiries.show');
     Route::patch('enquiries/{enquiry}', [Admin\AdmissionEnquiryController::class, 'update'])->name('enquiries.update');
@@ -150,6 +154,8 @@ Route::middleware(['auth', 'backoffice'])->prefix('admin')->name('admin.')->grou
     });
 
     Route::middleware('can:manage-settings')->group(function () {
+        Route::get('grading', [Admin\GradingController::class, 'edit'])->name('grading.edit');
+        Route::put('grading', [Admin\GradingController::class, 'update'])->name('grading.update');
         Route::get('settings', [Admin\SettingsController::class, 'edit'])->name('settings.edit');
         Route::put('settings', [Admin\SettingsController::class, 'update'])->name('settings.update');
         Route::put('settings/mail', [Admin\MailSettingsController::class, 'update'])->name('settings.mail.update');

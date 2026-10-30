@@ -100,17 +100,35 @@ class MarksAndResultsTest extends TestCase
         $this->assertSame('A+', $this->enrollment->fresh()->final_grade);
     }
 
-    public function test_module_marks_lock_once_marks_exist(): void
+    public function test_module_marks_stay_editable_after_marks_are_entered(): void
+    {
+        $module = $this->course->modules()->first();
+        $this->saveMarks([70, 70]);
+        $marks = ['theory_max_marks' => 100, 'practical_max_marks' => 0, 'theory_pass_marks' => 75, 'practical_pass_marks' => 0];
+
+        $this->put(route('admin.modules.update', $module), ['name' => 'Renamed'] + $marks)->assertSessionHasNoErrors();
+
+        $module->refresh();
+        $this->assertSame('Renamed', $module->name);
+        $this->assertSame(75, $module->theory_pass_marks);
+        $this->assertSame(ResultStatus::Fail, $this->enrollment->fresh()->result);
+    }
+
+    public function test_a_max_can_be_lowered_after_marks_are_entered(): void
     {
         $module = $this->course->modules()->first();
         $this->saveMarks([70, 70]);
 
-        $this->put(route('admin.modules.update', $module), ['name' => 'Renamed', 'theory_max_marks' => 50, 'theory_pass_marks' => 10])
-            ->assertSessionHasErrors(['theory_max_marks', 'theory_pass_marks'], errorBag: 'module');
+        $this->put(route('admin.modules.update', $module), ['name' => 'Renamed', 'theory_max_marks' => 60, 'practical_max_marks' => 0, 'theory_pass_marks' => 10, 'practical_pass_marks' => 0])
+            ->assertSessionHasNoErrors();
 
-        $this->put(route('admin.modules.update', $module), ['name' => 'Renamed'])->assertSessionHasNoErrors();
-        $this->assertSame('Renamed', $module->fresh()->name);
-        $this->assertSame(100, $module->fresh()->max_marks);
+        $this->assertSame(60, $module->fresh()->max_marks);
+    }
+
+    public function test_a_module_with_marks_cannot_be_deleted(): void
+    {
+        $module = $this->course->modules()->first();
+        $this->saveMarks([70, 70]);
 
         $this->delete(route('admin.modules.destroy', $module))->assertSessionHas('error');
         $this->assertModelExists($module);
@@ -129,6 +147,33 @@ class MarksAndResultsTest extends TestCase
         $module = $this->course->modules()->where('name', 'Office Tools')->firstOrFail();
         $this->assertSame(100, $module->max_marks);
         $this->assertSame(40, $module->pass_marks);
+    }
+
+    public function test_the_course_edit_page_lists_and_manages_its_modules(): void
+    {
+        $module = $this->course->modules()->firstOrFail();
+
+        $this->get(route('admin.courses.edit', $this->course))
+            ->assertOk()
+            ->assertSee('Assessment modules')
+            ->assertSee($module->name)
+            ->assertSee(route('admin.modules.update', $module), false)
+            ->assertSee(route('admin.courses.modules.store', $this->course), false)
+            ->assertSee(route('admin.courses.marks.edit', $this->course), false);
+    }
+
+    public function test_module_changes_return_to_the_page_they_were_made_from(): void
+    {
+        $module = $this->course->modules()->firstOrFail();
+        $marks = ['theory_max_marks' => 70, 'practical_max_marks' => 30, 'theory_pass_marks' => 28, 'practical_pass_marks' => 12];
+
+        $this->from(route('admin.courses.edit', $this->course))
+            ->put(route('admin.modules.update', $module), ['name' => 'Renamed'] + $marks)
+            ->assertRedirect(route('admin.courses.edit', $this->course).'#modules');
+
+        $this->from(route('admin.courses.show', $this->course))
+            ->put(route('admin.modules.update', $module), ['name' => 'Renamed again'] + $marks)
+            ->assertRedirect(route('admin.courses.show', $this->course).'#modules');
     }
 
     public function test_a_pass_mark_cannot_exceed_its_max(): void

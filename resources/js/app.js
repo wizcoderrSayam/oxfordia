@@ -28,6 +28,7 @@ import {
     FileText,
     Globe,
     GraduationCap,
+    IdCard,
     Inbox,
     IndianRupee,
     Info,
@@ -73,18 +74,25 @@ import {
 const icons = {
     Activity, Archive, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Award, BadgeCheck, BookOpen, Briefcase, Building2, Calendar,
     ChevronDown, ChevronRight, CircleCheck, CircleX, ClipboardList, Clock, CornerDownLeft, CreditCard, Download, ExternalLink, Eye, FileText,
-    Globe, GraduationCap, Inbox, IndianRupee, Info, KeyRound, Layers, LayoutDashboard, Lightbulb, Lock, LogOut,
+    Globe, GraduationCap, IdCard, Inbox, IndianRupee, Info, KeyRound, Layers, LayoutDashboard, Lightbulb, Lock, LogOut,
     Mail, MapPin, Menu, MessageSquare, Monitor, Moon, PanelLeftClose, PanelLeftOpen, Pencil, Phone, Plus, Printer, QrCode, Search, Send, Settings,
     ShieldCheck, ShieldX, ShoppingCart, Star, Sun, Tags, Target, Trash2, TrendingUp, TriangleAlert, Upload, User, UserPlus, Users, X,
 };
+
+const iconComponentName = (name) => String(name ?? '').replace(/(^|-)([a-z0-9])/g, (match, dash, letter) => letter.toUpperCase());
 
 const renderIcons = () => createIcons({ icons });
 
 renderIcons();
 
 // Render icons inside content Alpine adds later (teleported dialogs, toggled sections).
+// Only placeholders with a registered icon count: createIcons re-renders every icon on the page,
+// so re-running it for a name it can never replace would loop forever and freeze the page.
 new MutationObserver(() => {
-    if (document.querySelector('i[data-lucide]')) {
+    const hasPendingIcons = Array.from(document.querySelectorAll('i[data-lucide]'))
+        .some((element) => icons[iconComponentName(element.dataset.lucide)]);
+
+    if (hasPendingIcons) {
         renderIcons();
     }
 }).observe(document.body, { childList: true, subtree: true });
@@ -132,8 +140,7 @@ Alpine.data('marksRow', (modules, initial, bands) => ({
  * SVG markup for a lucide icon by its kebab-case name, for content Alpine renders reactively.
  */
 const iconMarkup = (name, attributes = {}) => {
-    const pascal = String(name ?? '').replace(/(^|-)([a-z0-9])/g, (match, dash, letter) => letter.toUpperCase());
-    const node = icons[pascal] ?? icons.ArrowRight;
+    const node = icons[iconComponentName(name)] ?? icons.ArrowRight;
 
     return createElement(node, { width: 16, height: 16, 'aria-hidden': 'true', ...attributes }).outerHTML;
 };

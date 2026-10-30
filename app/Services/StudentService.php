@@ -111,22 +111,31 @@ class StudentService
     }
 
     /**
-     * Delete a student without history.
+     * Delete a student together with their enrollments, marks and result documents.
      *
      * @throws ValidationException
      */
     public function delete(Student $student): void
     {
-        if ($student->hasHistory()) {
+        if ($student->hasProtectedRecords()) {
             throw ValidationException::withMessages([
-                'student' => 'This student has enrollments or certificates. Mark the student inactive instead.',
+                'student' => 'This student has an issued certificate or a payment order. Mark the student inactive instead.',
             ]);
         }
 
+        $resultDocuments = $student->enrollments()->whereNotNull('result_document_path')->pluck('result_document_path')->all();
+
         DB::transaction(function () use ($student) {
-            $this->logger->log('student.deleted', null, "Deleted {$student->registration_number}");
+            $enrollmentNumbers = $student->enrollments()->pluck('enrollment_number')->all();
+
+            $this->logger->log('student.deleted', null, "Deleted {$student->registration_number}", array_filter(['enrollments' => $enrollmentNumbers]));
+
+            // Marks are removed by the enrollment_marks cascade.
+            $student->enrollments()->delete();
             $student->delete();
         });
+
+        Storage::disk('local')->delete($resultDocuments);
 
         if ($student->profile_photo_path) {
             Storage::disk('public')->delete($student->profile_photo_path);

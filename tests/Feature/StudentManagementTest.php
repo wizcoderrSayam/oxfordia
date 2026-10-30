@@ -4,10 +4,13 @@ namespace Tests\Feature;
 
 use App\Enums\EnquiryStatus;
 use App\Models\AdmissionEnquiry;
+use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\Order;
 use App\Models\Student;
 use App\Models\User;
 use App\Notifications\PortalInvitation;
+use App\Services\CertificateService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
@@ -96,12 +99,90 @@ class StudentManagementTest extends TestCase
             ->assertSee($enrollment->enrollment_number);
     }
 
-    public function test_student_with_history_cannot_be_deleted(): void
+    public function test_deleting_a_student_also_deletes_their_enrollments_marks_and_result_documents(): void
     {
-        $enrollment = Enrollment::factory()->create();
+        Storage::fake('local');
+        $course = Course::factory()->withModules(1)->create();
+        $enrollment = Enrollment::factory()->create(['course_id' => $course->id, 'result_document_path' => 'result-documents/sheet.pdf']);
+        $mark = $enrollment->marks()->create(['course_module_id' => $course->modules()->value('id'), 'marks' => 70]);
+        Storage::disk('local')->put('result-documents/sheet.pdf', 'pdf');
+
+        $this->delete(route('admin.students.destroy', $enrollment->student))
+            ->assertRedirect(route('admin.students.index'))
+            ->assertSessionHas('success');
+
+        $this->assertModelMissing($enrollment->student);
+        $this->assertModelMissing($enrollment);
+        $this->assertModelMissing($mark);
+        Storage::disk('local')->assertMissing('result-documents/sheet.pdf');
+    }
+
+    public function test_a_student_with_an_issued_certificate_cannot_be_deleted(): void
+    {
+        Notification::fake();
+        $enrollment = Enrollment::factory()->passed()->create();
+        app(CertificateService::class)->issue($enrollment, User::factory()->admin()->create());
 
         $this->delete(route('admin.students.destroy', $enrollment->student))->assertSessionHas('error');
+
         $this->assertModelExists($enrollment->student);
+        $this->assertModelExists($enrollment);
+    }
+
+    public function test_a_student_with_a_payment_order_cannot_be_deleted(): void
+    {
+        $enrollment = Enrollment::factory()->create();
+        Order::query()->forceCreate([
+            'order_number' => 'ORD-2026-00001',
+            'user_id' => User::factory()->create()->id,
+            'course_id' => $enrollment->course_id,
+            'enrollment_id' => $enrollment->id,
+            'amount' => 1000,
+            'gateway' => 'dummy',
+        ]);
+
+        $this->delete(route('admin.students.destroy', $enrollment->student))->assertSessionHas('error');
+
+        $this->assertModelExists($enrollment->student);
+    }
+
+    public function test_the_student_list_offers_delete_unless_the_student_has_a_certificate(): void
+    {
+        Notification::fake();
+        $enrolled = Enrollment::factory()->create()->student;
+        $certified = Enrollment::factory()->passed()->create();
+        app(CertificateService::class)->issue($certified, User::factory()->admin()->create());
+
+        $this->get(route('admin.students.index'))
+            ->assertOk()
+            ->assertSee(route('admin.students.edit', $enrolled), false)
+            ->assertSee(route('admin.students.edit', $certified->student), false)
+            ->assertSee('action="'.route('admin.students.destroy', $enrolled).'"', false)
+            ->assertSee('along with their enrollment, marks and result documents')
+            ->assertDontSee('action="'.route('admin.students.destroy', $certified->student).'"', false)
+            ->assertSee("Students with an issued certificate or a payment order can't be deleted", false);
+    }
+
+    public function test_the_student_list_shows_the_date_of_birth(): void
+    {
+        Student::factory()->create(['date_of_birth' => '2004-05-17']);
+        Student::factory()->create(['date_of_birth' => null]);
+
+        $this->get(route('admin.students.index'))
+            ->assertOk()
+            ->assertSee('Date of birth')
+            ->assertSee('17 May 2004')
+            ->assertSee('Not set');
+    }
+
+    public function test_saving_an_edited_student_asks_for_confirmation(): void
+    {
+        $student = Student::factory()->create();
+
+        $this->get(route('admin.students.edit', $student))
+            ->assertOk()
+            ->assertSee('form="student-form"', false)
+            ->assertSee('Save changes?');
     }
 
     public function test_enquiry_can_be_converted_into_a_student(): void

@@ -86,20 +86,27 @@ class CourseService
      */
     public function delete(Course $course): void
     {
-        if ($course->hasHistory()) {
+        if ($course->hasProtectedRecords()) {
             throw ValidationException::withMessages([
-                'course' => 'This course has enrollments, orders or certificates and cannot be deleted. Archive it instead.',
+                'course' => 'This course has an issued certificate or a payment order and cannot be deleted. Archive it instead.',
             ]);
         }
 
         $files = array_filter([$course->image_path, $course->syllabus_path]);
+        $resultDocuments = $course->enrollments()->whereNotNull('result_document_path')->pluck('result_document_path')->all();
 
         DB::transaction(function () use ($course) {
-            $this->logger->log('course.deleted', null, "Deleted course {$course->course_code}");
+            $enrollmentNumbers = $course->enrollments()->pluck('enrollment_number')->all();
+
+            $this->logger->log('course.deleted', null, "Deleted course {$course->course_code}", array_filter(['enrollments' => $enrollmentNumbers]));
+
+            // Marks are removed by the enrollment_marks cascade, modules by the course_modules cascade.
+            $course->enrollments()->delete();
             $course->delete();
         });
 
         Storage::disk('public')->delete($files);
+        Storage::disk('local')->delete($resultDocuments);
     }
 
     public function uniqueSlug(string $value, ?int $ignoreId = null): string

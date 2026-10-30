@@ -98,10 +98,13 @@
 
             <section class="card p-6">
                 <h2 class="text-base font-semibold text-red-700">Danger zone</h2>
-                @if ($student->enrollments->isNotEmpty() || $student->certificates->isNotEmpty())
-                    <p class="mt-2 text-sm text-slate-600">Students with enrollments or certificates can't be deleted. Change the status to inactive instead.</p>
+                @if ($student->certificates->isNotEmpty() || $student->orders_count > 0)
+                    <p class="mt-2 text-sm text-slate-600">Students with an issued certificate or a payment order can't be deleted. Change the status to inactive instead.</p>
                 @else
-                    <x-confirm :action="route('admin.students.destroy', $student)" method="DELETE" title="Delete student?" message="This permanently deletes the student record." confirm-label="Delete student" trigger-class="btn-danger mt-3 w-full">
+                    @if ($student->enrollments->isNotEmpty())
+                        <p class="mt-2 text-sm text-slate-600">Deleting also removes this student's {{ trans_choice('{1}enrollment|[2,*]:count enrollments', $student->enrollments->count()) }}, marks and result documents.</p>
+                    @endif
+                    <x-confirm :action="route('admin.students.destroy', $student)" method="DELETE" title="Delete student?" :message="'This permanently deletes the student record'.($student->enrollments->isNotEmpty() ? ', along with their enrollments, marks and result documents' : '').'. This cannot be undone.'" confirm-label="Delete student" trigger-class="btn-danger mt-3 w-full">
                         <x-slot:trigger><x-icon name="trash-2" /> Delete student</x-slot:trigger>
                     </x-confirm>
                 @endif

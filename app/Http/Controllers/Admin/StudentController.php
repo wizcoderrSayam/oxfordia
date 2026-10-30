@@ -26,7 +26,7 @@ class StudentController extends Controller
         ]);
 
         $students = Student::query()
-            ->withCount('enrollments')
+            ->withCount(['enrollments', 'certificates', 'orders'])
             ->when($filters['q'] ?? null, function ($query, string $search) {
                 $query->where(function ($query) use ($search) {
                     $query->where('full_name', 'like', "%{$search}%")
@@ -76,7 +76,7 @@ class StudentController extends Controller
             'user',
             'enrollments' => fn ($query) => $query->with(['course', 'validCertificate'])->latest('enrollment_date'),
             'certificates' => fn ($query) => $query->latest('issue_date'),
-        ]);
+        ])->loadCount('orders');
 
         return view('admin.students.show', compact('student'));
     }

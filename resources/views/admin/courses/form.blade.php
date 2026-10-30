@@ -1,7 +1,12 @@
 <x-layouts.admin :title="$course->exists ? 'Edit course' : 'New course'">
-    <x-page-header :title="$course->exists ? 'Edit '.$course->title : 'New course'" :back="$course->exists ? route('admin.courses.show', $course) : route('admin.courses.index')" />
+    <x-page-header :title="$course->exists ? 'Edit '.$course->title : 'New course'" :back="$course->exists ? route('admin.courses.show', $course) : route('admin.courses.index')">
+        @if ($course->exists)
+            <a href="#modules" class="btn-secondary"><x-icon name="layers" /> Subjects</a>
+            <a href="{{ route('admin.courses.marks.edit', $course) }}" class="btn-secondary"><x-icon name="clipboard-list" /> Enter marks</a>
+        @endif
+    </x-page-header>
 
-    <form method="POST" action="{{ $course->exists ? route('admin.courses.update', $course) : route('admin.courses.store') }}" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-3" x-data="{ submitting: false }" @submit="submitting = true">
+    <form id="course-form" method="POST" action="{{ $course->exists ? route('admin.courses.update', $course) : route('admin.courses.store') }}" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-3" x-data="{ submitting: false }" @submit="submitting = true">
         @csrf
         @if ($course->exists) @method('PUT') @endif
 
@@ -49,8 +54,22 @@
 
             <div class="flex justify-end gap-3">
                 <a href="{{ $course->exists ? route('admin.courses.show', $course) : route('admin.courses.index') }}" class="btn-secondary">Cancel</a>
-                <button type="submit" class="btn-primary" :disabled="submitting">{{ $course->exists ? 'Save changes' : 'Create course' }}</button>
+                @if ($course->exists)
+                    <x-confirm-submit form="course-form" title="Save changes?" :message="'Update the course '.$course->title.' ('.$course->course_code.')?'" confirm-label="Save changes">
+                        <x-slot:trigger>Save changes</x-slot:trigger>
+                    </x-confirm-submit>
+                @else
+                    <button type="submit" class="btn-primary" :disabled="submitting">Create course</button>
+                @endif
             </div>
         </div>
     </form>
+
+    @if ($course->exists)
+        <div class="mt-6 grid gap-6 lg:grid-cols-3">
+            <div class="lg:col-span-2">
+                @include('admin.courses._modules')
+            </div>
+        </div>
+    @endif
 </x-layouts.admin>

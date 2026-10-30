@@ -55,6 +55,27 @@ class ResultService
     }
 
     /**
+     * Re-grade every final result that is not frozen by a valid certificate, after the grade bands change.
+     *
+     * @return int The number of results re-graded.
+     */
+    public function regradeAll(): int
+    {
+        $count = 0;
+
+        Enrollment::query()
+            ->whereNotNull('percentage')
+            ->whereDoesntHave('validCertificate')
+            ->with('course.modules')
+            ->each(function (Enrollment $enrollment) use (&$count) {
+                $this->recalculate($enrollment, $enrollment->course->modules);
+                $count++;
+            });
+
+        return $count;
+    }
+
+    /**
      * Compute a result. It is only final when every module has marks.
      * A module is passed only when both its theory and practical pass marks are reached.
      *

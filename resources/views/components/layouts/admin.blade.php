@@ -10,11 +10,11 @@
             ['label' => 'Courses', 'route' => 'admin.courses.index', 'active' => ['admin.courses.*', 'admin.modules.*'], 'icon' => 'book-open'],
             ['label' => 'Categories', 'route' => 'admin.categories.index', 'active' => 'admin.categories.*', 'icon' => 'tags'],
             ['label' => 'Students', 'route' => 'admin.students.index', 'active' => 'admin.students.*', 'icon' => 'users'],
+            ['label' => 'Employees', 'route' => 'admin.employees.index', 'active' => 'admin.employees.*', 'icon' => 'id-card'],
             ['label' => 'Enrollments', 'route' => 'admin.enrollments.index', 'active' => 'admin.enrollments.*', 'icon' => 'clipboard-list'],
             ['label' => 'Certificates', 'route' => 'admin.certificates.index', 'active' => 'admin.certificates.*', 'icon' => 'award', 'badge' => $counts['certificates'] ?? 0],
         ],
         'Front office' => [
-            ['label' => 'Orders', 'route' => 'admin.orders.index', 'active' => 'admin.orders.*', 'icon' => 'shopping-cart'],
             ['label' => 'Admission enquiries', 'route' => 'admin.enquiries.index', 'active' => 'admin.enquiries.*', 'icon' => 'inbox', 'badge' => $counts['enquiries'] ?? 0],
             ['label' => 'Contact messages', 'route' => 'admin.messages.index', 'active' => 'admin.messages.*', 'icon' => 'message-square', 'badge' => $counts['messages'] ?? 0],
         ],
@@ -22,6 +22,7 @@
 
     $administration = array_values(array_filter([
         $user->can('manage-users') ? ['label' => 'Users', 'route' => 'admin.users.index', 'active' => 'admin.users.*', 'icon' => 'user'] : null,
+        $user->can('manage-settings') ? ['label' => 'Grading', 'route' => 'admin.grading.edit', 'active' => 'admin.grading.*', 'icon' => 'graduation-cap'] : null,
         $user->can('manage-settings') ? ['label' => 'Settings', 'route' => 'admin.settings.edit', 'active' => 'admin.settings.*', 'icon' => 'settings'] : null,
         $user->can('view-activity-log') ? ['label' => 'Activity log', 'route' => 'admin.activity.index', 'active' => 'admin.activity.*', 'icon' => 'activity'] : null,
     ]));
@@ -32,6 +33,7 @@
 
     $createActions = array_values(array_filter([
         ['label' => 'New student', 'hint' => 'Register a student', 'url' => route('admin.students.create'), 'icon' => 'user-plus'],
+        ['label' => 'New employee', 'hint' => 'Register a staff member for verification', 'url' => route('admin.employees.create'), 'icon' => 'id-card'],
         ['label' => 'New enrollment', 'hint' => 'Enroll a student in a course', 'url' => route('admin.enrollments.create'), 'icon' => 'clipboard-list'],
         ['label' => 'New course', 'hint' => 'Add to the catalogue', 'url' => route('admin.courses.create'), 'icon' => 'book-open'],
         ['label' => 'New category', 'hint' => 'Group related courses', 'url' => route('admin.categories.create'), 'icon' => 'tags'],

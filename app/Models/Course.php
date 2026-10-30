@@ -113,11 +113,11 @@ class Course extends Model
     }
 
     /**
-     * Whether the course has history that forbids a hard delete.
+     * Whether the course has an issued certificate or a payment order, which forbid a hard delete.
      */
-    public function hasHistory(): bool
+    public function hasProtectedRecords(): bool
     {
-        return $this->enrollments()->exists() || $this->orders()->exists() || $this->certificates()->exists();
+        return $this->certificates()->exists() || $this->orders()->exists();
     }
 
     /**

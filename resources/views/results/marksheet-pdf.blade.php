@@ -14,7 +14,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Marksheet {{ $enrollment->enrollment_number }}</title>
+    <title>Marksheet {{ $enrollment->student->registration_number }}</title>
     <style>
         @page { size: A4 portrait; margin: 14mm; }
         body { margin: 0; font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 10pt; color: #1e293b; }
@@ -74,7 +74,7 @@
 
             <table class="details">
                 <tr>
-                    <td><span class="label">Enrollment No</span><span class="value">{{ $enrollment->enrollment_number }}</span></td>
+                    <td><span class="label">Registration No</span><span class="value">{{ $student->registration_number }}</span></td>
                     <td><span class="label">Student Name</span><span class="value">{{ $student->full_name }}</span></td>
                 </tr>
                 <tr>

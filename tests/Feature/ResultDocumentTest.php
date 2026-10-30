@@ -25,7 +25,7 @@ class ResultDocumentTest extends TestCase
 
         Storage::fake('local');
 
-        $student = Student::factory()->create(['full_name' => 'Rachhpal Singh', 'father_name' => 'Gurmeet Singh', 'date_of_birth' => '2001-03-09']);
+        $student = Student::factory()->create(['full_name' => 'Rachhpal Singh', 'registration_number' => 'OXF-2023-0018', 'father_name' => 'Gurmeet Singh', 'date_of_birth' => '2001-03-09']);
         $course = Course::factory()->create(['title' => 'ADCA', 'duration_value' => 2, 'duration_unit' => 'years']);
         $this->enrollment = Enrollment::factory()->passed('A')->create([
             'enrollment_number' => 'FGI/KH001/2023018',
@@ -45,7 +45,7 @@ class ResultDocumentTest extends TestCase
 
     private function lookup(): TestResponse
     {
-        return $this->post(route('results.lookup'), ['roll_number' => 'FGI/KH001/2023018', 'dob_day' => 9, 'dob_month' => 3, 'dob_year' => 2001]);
+        return $this->post(route('results.lookup'), ['registration_number' => 'FGI/KH001/2023018', 'dob_day' => 9, 'dob_month' => 3, 'dob_year' => 2001]);
     }
 
     public function test_staff_can_upload_a_result_document(): void
@@ -105,7 +105,7 @@ class ResultDocumentTest extends TestCase
         $this->lookup()
             ->assertOk()
             ->assertSee('Statement of Result')
-            ->assertSeeInOrder(['Enrollment No', 'FGI/KH001/2023018', 'Student Name', 'Rachhpal Singh', 'Father Name', 'Gurmeet Singh', 'Course', 'ADCA'])
+            ->assertSeeInOrder(['Registration No', 'OXF-2023-0018', 'Student Name', 'Rachhpal Singh', 'Father Name', 'Gurmeet Singh', 'Course', 'ADCA'])
             ->assertDontSee('01/07/2023 – 30/06/2025')
             ->assertDontSee('2 Years')
             ->assertDontSee('Official copy')

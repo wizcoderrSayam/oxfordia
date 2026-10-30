@@ -23,24 +23,26 @@ class ResultController extends Controller
      */
     public function index(): View
     {
-        return view('public.results', ['searched' => false, 'enrollment' => null]);
+        return view('public.results', ['searched' => false, 'enrollments' => collect()]);
     }
 
     /**
-     * Find a result by roll number (the enrollment number) and the student's date of birth.
+     * Find results by the student's registration number (or an enrollment roll number)
+     * and the student's date of birth.
      *
-     * Both values must match, and a miss gives the same response whichever one was wrong,
-     * so the lookup cannot be used to discover which roll numbers exist.
+     * A registration number shows every course the student is enrolled in; a roll number
+     * shows just that course. Both values must match, and a miss gives the same response
+     * whichever one was wrong, so the lookup cannot be used to discover which numbers exist.
      */
     public function lookup(Request $request): View
     {
         $validated = $request->validate([
-            'roll_number' => ['required', 'string', 'max:30'],
+            'registration_number' => ['required', 'string', 'max:30'],
             'dob_day' => ['required', 'integer', 'between:1,31'],
             'dob_month' => ['required', 'integer', 'between:1,12'],
             'dob_year' => ['required', 'integer', 'between:1900,'.now()->year],
         ], [], [
-            'roll_number' => 'roll number',
+            'registration_number' => 'registration number',
             'dob_day' => 'day of birth',
             'dob_month' => 'month of birth',
             'dob_year' => 'year of birth',
@@ -51,19 +53,22 @@ class ResultController extends Controller
         }
 
         $dateOfBirth = Carbon::createFromDate((int) $validated['dob_year'], (int) $validated['dob_month'], (int) $validated['dob_day'])->startOfDay();
-        $rollNumber = Str::upper(trim($validated['roll_number']));
+        $registrationNumber = Str::upper(trim($validated['registration_number']));
 
-        $enrollment = Enrollment::query()
-            ->where('enrollment_number', $rollNumber)
+        $enrollments = Enrollment::query()
             ->where('status', '!=', EnrollmentStatus::Withdrawn)
             ->whereHas('student', fn (Builder $query) => $query->whereDate('date_of_birth', $dateOfBirth->toDateString()))
+            ->where(fn (Builder $query) => $query
+                ->where('enrollment_number', $registrationNumber)
+                ->orWhereHas('student', fn (Builder $query) => $query->where('registration_number', $registrationNumber)))
             ->with(['student', 'course.modules', 'marks'])
-            ->first();
+            ->latest('enrollment_date')
+            ->get();
 
         return view('public.results', [
             'searched' => true,
-            'enrollment' => $enrollment,
-            'rollNumber' => $rollNumber,
+            'enrollments' => $enrollments,
+            'registrationNumber' => $registrationNumber,
             'dateOfBirth' => $dateOfBirth,
         ]);
     }

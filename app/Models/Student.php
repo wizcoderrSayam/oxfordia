@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Notification as NotificationSender;
 use Illuminate\Support\Facades\Storage;
@@ -66,6 +67,14 @@ class Student extends Model
     }
 
     /**
+     * @return HasManyThrough<Order, Enrollment, $this>
+     */
+    public function orders(): HasManyThrough
+    {
+        return $this->hasManyThrough(Order::class, Enrollment::class);
+    }
+
+    /**
      * Email the student at their portal account address, falling back to the address on the record.
      */
     public function notifyByMail(Notification $notification): void
@@ -78,11 +87,12 @@ class Student extends Model
     }
 
     /**
-     * Whether the student has history that forbids a hard delete.
+     * Whether the student has an issued certificate or a payment order, which forbid a hard delete:
+     * certificates must keep verifying and payments must stay on record.
      */
-    public function hasHistory(): bool
+    public function hasProtectedRecords(): bool
     {
-        return $this->enrollments()->exists() || $this->certificates()->exists();
+        return $this->certificates()->exists() || $this->orders()->exists();
     }
 
     /**

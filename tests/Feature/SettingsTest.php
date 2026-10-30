@@ -28,11 +28,10 @@ class SettingsTest extends TestCase
             'signatory_2_name' => 'Ms. Coordinator',
             'signatory_2_designation' => 'Coordinator',
             'certificate_title' => 'Certificate of Achievement',
-            'grade_bands' => [['grade' => 'Distinction', 'min' => 80], ['grade' => 'Pass', 'min' => 50]],
         ], $overrides);
     }
 
-    public function test_admin_can_update_branding_and_grade_bands(): void
+    public function test_admin_can_update_branding(): void
     {
         Storage::fake('public');
         $this->actingAs(User::factory()->admin()->create());
@@ -45,7 +44,6 @@ class SettingsTest extends TestCase
         $settings->flush();
 
         $this->assertSame('Oxfordia Academy', $settings->get('name'));
-        $this->assertSame('Distinction', $settings->gradeBands()[0]['grade']);
         Storage::disk('public')->assertExists($settings->get('logo_path'));
 
         $this->get('/')->assertSee('Oxfordia Academy');
@@ -58,7 +56,6 @@ class SettingsTest extends TestCase
         $this->put(route('admin.settings.update'), $this->payload([
             'email' => 'invalid',
             'map_embed_url' => 'https://evil.example.com/frame',
-            'grade_bands' => [['grade' => 'A', 'min' => 150]],
-        ]))->assertSessionHasErrors(['email', 'map_embed_url', 'grade_bands.0.min']);
+        ]))->assertSessionHasErrors(['email', 'map_embed_url']);
     }
 }

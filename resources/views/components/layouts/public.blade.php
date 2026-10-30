@@ -78,7 +78,7 @@
                     @else
                         <a href="{{ route('login') }}" class="login-link desktop-only">Log in</a>
                     @endauth
-                    <a href="{{ route('admissions.create') }}" class="btn-oxf btn-navy show-md">Enquire Now</a>
+                    <x-verify-menu class="show-md" />
                     <button class="menu-toggle mobile-only" type="button" data-menu-open aria-controls="mobileMenu" aria-label="Open menu"><span></span><span></span><span></span></button>
                 </div>
             </nav>
@@ -107,7 +107,7 @@
                     @endauth
                 </li>
             </ul>
-            <a href="{{ route('admissions.create') }}" class="btn-oxf btn-gold mb-4">Enquire Now</a>
+            <x-verify-menu mobile />
             <div class="mobile-contact">
                 <p><i class="bi bi-telephone"></i><span><a href="tel:{{ $phoneLink }}">{{ $institute->get('phone') }}</a></span></p>
                 <p><i class="bi bi-envelope"></i><a href="mailto:{{ $institute->get('email') }}">{{ $institute->get('email') }}</a></p>
@@ -158,6 +158,7 @@
                         <li><a href="{{ route('courses.index') }}">All courses</a></li>
                         <li><a href="{{ route('admissions.create') }}">Enquire now</a></li>
                         <li><a href="{{ route('certificates.verify') }}">Verify a certificate</a></li>
+                        <li><a href="{{ route('employees.verify') }}">Verify an employee</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6">

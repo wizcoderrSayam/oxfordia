@@ -7,7 +7,7 @@
         </x-callout>
     @endif
 
-    <form method="POST" action="{{ $student->exists ? route('admin.students.update', $student) : route('admin.students.store') }}" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-3" x-data="{ submitting: false }" @submit="submitting = true">
+    <form id="student-form" method="POST" action="{{ $student->exists ? route('admin.students.update', $student) : route('admin.students.store') }}" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-3" x-data="{ submitting: false }" @submit="submitting = true">
         @csrf
         @if ($student->exists) @method('PUT') @endif
         @if ($enquiry) <input type="hidden" name="enquiry_id" value="{{ $enquiry->id }}"> @endif
@@ -39,7 +39,13 @@
             </div>
             <div class="flex justify-end gap-3">
                 <a href="{{ $student->exists ? route('admin.students.show', $student) : route('admin.students.index') }}" class="btn-secondary">Cancel</a>
-                <button type="submit" class="btn-primary" :disabled="submitting">{{ $student->exists ? 'Save changes' : 'Register student' }}</button>
+                @if ($student->exists)
+                    <x-confirm-submit form="student-form" title="Save changes?" :message="'Update the record for '.$student->full_name.' ('.$student->registration_number.')?'" confirm-label="Save changes">
+                        <x-slot:trigger>Save changes</x-slot:trigger>
+                    </x-confirm-submit>
+                @else
+                    <button type="submit" class="btn-primary" :disabled="submitting">Register student</button>
+                @endif
             </div>
         </div>
     </form>

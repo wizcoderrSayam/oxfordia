@@ -17,6 +17,7 @@ return [
         'enrollment' => 'ENR',
         'certificate' => env('INSTITUTE_CERTIFICATE_PREFIX', 'OXF-CERT'),
         'order' => 'ORD',
+        'employee' => env('INSTITUTE_EMPLOYEE_PREFIX', 'EMP'),
     ],
 
     /*

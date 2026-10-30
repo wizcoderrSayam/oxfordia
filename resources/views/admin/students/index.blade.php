@@ -27,7 +27,7 @@
             </x-empty-state>
         @else
             <table class="table-base">
-                <thead><tr><th>Student</th><th>Reg. no.</th><th>Phone</th><th>Admitted</th><th class="text-right">Enrollments</th><th>Status</th></tr></thead>
+                <thead><tr><th>Student</th><th>Reg. no.</th><th>Phone</th><th>Date of birth</th><th>Admitted</th><th class="text-right">Enrollments</th><th>Status</th><th class="text-right">Actions</th></tr></thead>
                 <tbody>
                     @foreach ($students as $student)
                         <tr>
@@ -46,9 +46,24 @@
                             </td>
                             <td class="font-mono text-xs">{{ $student->registration_number }}</td>
                             <td>{{ $student->phone }}</td>
+                            <td>@if ($student->date_of_birth){{ $student->date_of_birth->format('d M Y') }}@else<span class="text-xs font-medium text-amber-700" title="Needed for the online result lookup">Not set</span>@endif</td>
                             <td>{{ $student->admission_date->format('d M Y') }}</td>
                             <td class="text-right">{{ $student->enrollments_count }}</td>
                             <td><x-status-badge :status="$student->status" /></td>
+                            <td>
+                                <div class="flex justify-end gap-2">
+                                    <a href="{{ route('admin.students.edit', $student) }}" class="btn-secondary btn-sm"><x-icon name="pencil" /> Edit</a>
+                                    @if ($student->certificates_count === 0 && $student->orders_count === 0)
+                                        <x-confirm :action="route('admin.students.destroy', $student)" method="DELETE" title="Delete student?" :message="'“'.$student->full_name.'” ('.$student->registration_number.') will be permanently deleted'.($student->enrollments_count > 0 ? ', along with '.trans_choice('{1}their enrollment|[2,*]all :count of their enrollments', $student->enrollments_count).', marks and result documents' : '').'. This cannot be undone.'" confirm-label="Delete student">
+                                            <x-slot:trigger><x-icon name="trash-2" /> Delete</x-slot:trigger>
+                                        </x-confirm>
+                                    @else
+                                        <span class="inline-block" title="Students with an issued certificate or a payment order can't be deleted. Mark them inactive instead.">
+                                            <button type="button" class="btn-danger btn-sm" disabled aria-disabled="true"><x-icon name="trash-2" /> Delete</button>
+                                        </span>
+                                    @endif
+                                </div>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>

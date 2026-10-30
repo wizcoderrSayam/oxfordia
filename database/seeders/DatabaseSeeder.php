@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
     public function run(StudentService $students, EnrollmentService $enrollments, MarkService $marks): void
     {
         $this->seedAdministrator();
+        $this->call(EmployeeSeeder::class);
 
         if (Course::query()->exists()) {
             $this->command?->warn('Courses already exist – skipping sample academic data.');

@@ -29,7 +29,7 @@ class CourseController extends Controller
 
         $courses = Course::query()
             ->with('category')
-            ->withCount(['enrollments', 'modules'])
+            ->withCount(['enrollments', 'modules', 'orders', 'certificates'])
             ->when($filters['q'] ?? null, function ($query, string $search) {
                 $query->where(fn ($q) => $q->where('title', 'like', "%{$search}%")->orWhere('course_code', 'like', "%{$search}%"));
             })
@@ -73,6 +73,8 @@ class CourseController extends Controller
 
     public function edit(Course $course): View
     {
+        $course->load(['modules' => fn ($query) => $query->withCount('marks')]);
+
         return view('admin.courses.form', [
             'course' => $course,
             'categories' => CourseCategory::query()->orderBy('name')->pluck('name', 'id'),

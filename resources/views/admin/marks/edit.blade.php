@@ -33,7 +33,7 @@
                             @foreach ($course->modules as $module)
                                 <th class="min-w-28 text-center">{{ $module->name }}
                                     @foreach ($partsFor($module) as $part => $label)
-                                        <span class="block font-normal normal-case">{{ $label }} /{{ $module->{$part.'_max_marks'} }} (pass {{ $module->{$part.'_pass_marks'} }})</span>
+                                        <span class="block font-normal normal-case">{{ $label }} /{{ $module->{$part.'_max_marks'} }} (min {{ $module->{$part.'_pass_marks'} }})</span>
                                     @endforeach
                                 </th>
                             @endforeach

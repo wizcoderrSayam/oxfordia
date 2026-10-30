@@ -19,7 +19,7 @@
                 </div>
                 <div class="overflow-x-auto">
                     <table class="table-base">
-                        <thead><tr><th>Module</th><th class="text-right">Max</th><th class="text-right">Pass</th><th class="text-right">Marks</th></tr></thead>
+                        <thead><tr><th>Module</th><th class="text-right">Max</th><th class="text-right">Min</th><th class="text-right">Marks</th></tr></thead>
                         <tbody>
                             @forelse ($enrollment->course->modules as $module)
                                 @php($mark = $marks->get($module->id))

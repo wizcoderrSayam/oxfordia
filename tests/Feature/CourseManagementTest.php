@@ -7,8 +7,10 @@ use App\Models\Course;
 use App\Models\CourseCategory;
 use App\Models\Enrollment;
 use App\Models\User;
+use App\Services\CertificateService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -125,13 +127,35 @@ class CourseManagementTest extends TestCase
         $this->assertModelMissing($course);
     }
 
-    public function test_course_with_enrollments_cannot_be_deleted(): void
+    public function test_deleting_a_course_also_deletes_its_enrollments_marks_and_result_documents(): void
     {
-        $enrollment = Enrollment::factory()->create();
+        Storage::fake('local');
+        $course = Course::factory()->withModules(1)->create();
+        $enrollment = Enrollment::factory()->create(['course_id' => $course->id, 'result_document_path' => 'result-documents/sheet.pdf']);
+        $mark = $enrollment->marks()->create(['course_module_id' => $course->modules()->value('id'), 'marks' => 70]);
+        Storage::disk('local')->put('result-documents/sheet.pdf', 'pdf');
+
+        $this->delete(route('admin.courses.destroy', $course))
+            ->assertRedirect(route('admin.courses.index'))
+            ->assertSessionHas('success');
+
+        $this->assertModelMissing($course);
+        $this->assertModelMissing($enrollment);
+        $this->assertModelMissing($mark);
+        $this->assertModelExists($enrollment->student);
+        Storage::disk('local')->assertMissing('result-documents/sheet.pdf');
+    }
+
+    public function test_a_course_with_an_issued_certificate_cannot_be_deleted(): void
+    {
+        Notification::fake();
+        $enrollment = Enrollment::factory()->passed()->create();
+        app(CertificateService::class)->issue($enrollment, User::factory()->admin()->create());
 
         $this->delete(route('admin.courses.destroy', $enrollment->course))->assertSessionHas('error');
 
         $this->assertModelExists($enrollment->course);
+        $this->assertModelExists($enrollment);
     }
 
     public function test_admin_course_list_can_be_searched_and_filtered(): void
@@ -141,5 +165,32 @@ class CourseManagementTest extends TestCase
 
         $this->get(route('admin.courses.index', ['q' => 'PY-101']))->assertSee('Python Programming')->assertDontSee('Graphic Design');
         $this->get(route('admin.courses.index', ['status' => 'draft']))->assertSee('Graphic Design')->assertDontSee('Python Programming');
+    }
+
+    public function test_the_course_list_offers_delete_unless_the_course_has_a_certificate(): void
+    {
+        Notification::fake();
+        $enrolled = Enrollment::factory()->create()->course;
+        $certified = Enrollment::factory()->passed()->create();
+        app(CertificateService::class)->issue($certified, User::factory()->admin()->create());
+
+        $this->get(route('admin.courses.index'))
+            ->assertOk()
+            ->assertSee(route('admin.courses.edit', $enrolled), false)
+            ->assertSee(route('admin.courses.edit', $certified->course), false)
+            ->assertSee('action="'.route('admin.courses.destroy', $enrolled).'"', false)
+            ->assertSee('along with its modules, its enrollment, marks and result documents')
+            ->assertDontSee('action="'.route('admin.courses.destroy', $certified->course).'"', false)
+            ->assertSee("Courses with an issued certificate or a payment order can't be deleted", false);
+    }
+
+    public function test_saving_an_edited_course_asks_for_confirmation(): void
+    {
+        $course = Course::factory()->create();
+
+        $this->get(route('admin.courses.edit', $course))
+            ->assertOk()
+            ->assertSee('form="course-form"', false)
+            ->assertSee('Save changes?');
     }
 }
