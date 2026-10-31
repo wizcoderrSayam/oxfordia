@@ -1,4 +1,5 @@
 <x-layouts.public title="Employee Login" description="Employees can log in with their registration number and date of birth to view their profile.">
+    @unless ($searched && $employee)
     <section class="page-hero">
         <div class="page-hero__bg"><img src="{{ asset('oxf/assets/images/px-team.jpg') }}" alt=""></div>
         <div class="page-hero__ring" aria-hidden="true"></div>
@@ -12,6 +13,7 @@
             <p class="page-hero__lead" data-animate style="transition-delay:240ms">Enter your registration number and date of birth to view your employee profile at {{ $institute->get('name') }}.</p>
         </div>
     </section>
+    @endunless
 
     @if ($searched && $employee)
         @php

@@ -81,7 +81,8 @@ class EmployeeVerificationTest extends TestCase
             ->assertSee('01 Jul 2021')
             ->assertSee('Senior Faculty')
             ->assertSee('Active')
-            ->assertSee('Teaches programming fundamentals.');
+            ->assertSee('Teaches programming fundamentals.')
+            ->assertDontSee('page-hero', false);
     }
 
     public function test_the_lookup_ignores_case_and_surrounding_spaces(): void

@@ -158,7 +158,6 @@
                     <ul>
                         <li><a href="{{ route('courses.index') }}">All courses</a></li>
                         <li><a href="{{ route('admissions.create') }}">Enquire now</a></li>
-                        <li><a href="{{ route('certificates.verify') }}">Verify a certificate</a></li>
                         <li><a href="{{ route('employees.verify') }}">Employee Login</a></li>
                     </ul>
                 </div>
