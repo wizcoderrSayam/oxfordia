@@ -5,6 +5,11 @@
     'linkedin_url' => ['LinkedIn', 'bi-linkedin'],
     'youtube_url' => ['YouTube', 'bi-youtube'],
   ];
+  $phone = (string) $institute->get('phone');
+  $whatsappNumber = preg_replace('/\D/', '', $phone);
+  $email = (string) $institute->get('email');
+  $address = (string) $institute->get('address');
+  $versioned = fn (string $path): string => asset($path).'?v='.filemtime(public_path($path));
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -23,7 +28,7 @@
   <link rel="stylesheet" href="{{ asset('oxf/assets/vendor/bootstrap/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ asset('oxf/assets/vendor/bootstrap-icons/bootstrap-icons.min.css') }}">
   <!-- Main CSS -->
-  <link rel="stylesheet" href="{{ asset('oxf/assets/css/style.css') }}">
+  <link rel="stylesheet" href="{{ $versioned('oxf/assets/css/style.css') }}">
   <script>document.documentElement.classList.add('js-anim');</script>
 </head>
 <body>
@@ -41,9 +46,9 @@
     <div class="topbar d-none d-lg-block">
       <div class="container">
         <ul class="topbar__list">
-          <li><i class="bi bi-envelope"></i><a href="mailto:oxfordiaedu@gmail.com">oxfordiaedu@gmail.com</a></li>
-          <li><i class="bi bi-telephone"></i><a href="tel:+919855562888">98555-62888</a>, <a href="tel:+919878700751">98787-00751</a></li>
-          <li><i class="bi bi-geo-alt"></i>Near Bus Stand, Amritsar Road, Ajnala, 143102</li>
+          <li><i class="bi bi-envelope"></i><a href="mailto:{{ $email }}">{{ $email }}</a></li>
+          <li><i class="bi bi-telephone"></i><x-institute-phones /></li>
+          <li><i class="bi bi-geo-alt"></i>{{ $address }}</li>
         </ul>
         <div class="topbar__social">
           @foreach ($socials as $key => [$network, $iconClass])
@@ -51,7 +56,7 @@
               <a href="{{ $institute->get($key) }}" target="_blank" rel="noopener" aria-label="{{ $network }}"><i class="bi {{ $iconClass }}"></i></a>
             @endif
           @endforeach
-          <a href="https://wa.me/919855562888" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+          <a href="https://wa.me/{{ $whatsappNumber }}" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
         </div>
       </div>
     </div>
@@ -99,9 +104,9 @@
       </ul>
       <x-verify-menu mobile />
       <div class="mobile-contact">
-        <p><i class="bi bi-telephone"></i><span><a href="tel:+919855562888">98555-62888</a>, <a href="tel:+919878700751">98787-00751</a></span></p>
-        <p><i class="bi bi-envelope"></i><a href="mailto:oxfordiaedu@gmail.com">oxfordiaedu@gmail.com</a></p>
-        <p><i class="bi bi-geo-alt"></i><span>Near Bus Stand, Amritsar Road, Ajnala, 143102</span></p>
+        <p><i class="bi bi-telephone"></i><span><x-institute-phones /></span></p>
+        <p><i class="bi bi-envelope"></i><a href="mailto:{{ $email }}">{{ $email }}</a></p>
+        <p><i class="bi bi-geo-alt"></i><span>{{ $address }}</span></p>
       </div>
     </div>
   </div>
@@ -411,7 +416,7 @@
               <p class="section-lead">Call us for free counselling, fee details and batch timings.</p>
             </div>
             <div class="col-lg-4 text-lg-end">
-              <a href="tel:+919855562888" class="btn-oxf btn-gold"><i class="bi bi-telephone"></i> 98555-62888</a>
+              <a href="tel:{{ preg_replace('/[^0-9+]/', '', $phone) }}" class="btn-oxf btn-gold"><i class="bi bi-telephone"></i> {{ $phone }}</a>
             </div>
           </div>
         </div>
@@ -489,9 +494,9 @@
               <h2 class="section-title">We'd love to <em>hear from you</em></h2>
               <p class="section-lead">Visit our campus, call us, or send an enquiry. We'll help you choose the right course.</p>
               <ul class="contact-list">
-                <li><i class="bi bi-geo-alt"></i><div><h6>Address</h6><p>Near Bus Stand, Amritsar Road, Ajnala, 143102</p></div></li>
-                <li><i class="bi bi-telephone"></i><div><h6>Phone</h6><a href="tel:+919855562888">98555-62888</a>, <a href="tel:+919878700751">98787-00751</a></div></li>
-                <li><i class="bi bi-envelope"></i><div><h6>Email</h6><a href="mailto:oxfordiaedu@gmail.com">oxfordiaedu@gmail.com</a></div></li>
+                <li><i class="bi bi-geo-alt"></i><div><h6>Address</h6><p>{{ $address }}</p></div></li>
+                <li><i class="bi bi-telephone"></i><div><h6>Phone</h6><x-institute-phones /></div></li>
+                <li><i class="bi bi-envelope"></i><div><h6>Email</h6><a href="mailto:{{ $email }}">{{ $email }}</a></div></li>
               </ul>
             </div>
             <div class="col-lg-7" data-reveal="up">
@@ -578,7 +583,7 @@
                     <a href="{{ $institute->get($key) }}" target="_blank" rel="noopener" aria-label="{{ $network }}"><i class="bi {{ $iconClass }}"></i></a>
                   @endif
                 @endforeach
-                <a href="https://wa.me/919855562888" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                <a href="https://wa.me/{{ $whatsappNumber }}" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
               </div>
             </div>
             <div class="col-lg-2 col-md-6">
@@ -604,9 +609,9 @@
             <div class="col-lg-3 col-md-6">
               <h5>Contact</h5>
               <ul class="footer__contact">
-                <li><i class="bi bi-geo-alt"></i><span>Near Bus Stand, Amritsar Road, Ajnala, 143102</span></li>
-                <li><i class="bi bi-telephone"></i><span><a href="tel:+919855562888">98555-62888</a><br><a href="tel:+919878700751">98787-00751</a></span></li>
-                <li><i class="bi bi-envelope"></i><a href="mailto:oxfordiaedu@gmail.com">oxfordiaedu@gmail.com</a></li>
+                <li><i class="bi bi-geo-alt"></i><span>{{ $address }}</span></li>
+                <li><i class="bi bi-telephone"></i><span><x-institute-phones separator="<br>" /></span></li>
+                <li><i class="bi bi-envelope"></i><a href="mailto:{{ $email }}">{{ $email }}</a></li>
               </ul>
             </div>
           </div>
@@ -630,7 +635,7 @@
   </div>
 
   <!-- Floating buttons -->
-  <a href="https://wa.me/919855562888" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><i class="bi bi-whatsapp"></i></a>
+  <a href="https://wa.me/{{ $whatsappNumber }}" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><i class="bi bi-whatsapp"></i></a>
   <button class="back-to-top" id="backToTop" aria-label="Back to top"><i class="bi bi-arrow-up"></i></button>
 
   <!-- Vendor JS (local) -->
@@ -640,6 +645,6 @@
   <script src="{{ asset('oxf/assets/vendor/gsap/ScrollTrigger.min.js') }}"></script>
   <script src="{{ asset('oxf/assets/vendor/gsap/ScrollSmoother.min.js') }}"></script>
   <!-- Main JS -->
-  <script src="{{ asset('oxf/assets/js/main.js') }}"></script>
+  <script src="{{ $versioned('oxf/assets/js/main.js') }}"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@
     $siteName = $institute->get('name');
     $brandName = Str::upper(Str::before($siteName, ' '));
     $brandSub = Str::upper(trim(Str::after($siteName, ' ')) ?: 'Educational Group');
-    $phoneLink = preg_replace('/[^0-9+]/', '', (string) $institute->get('phone'));
+    $versioned = fn (string $path): string => asset($path).'?v='.filemtime(public_path($path));
     $whatsappNumber = preg_replace('/\D/', '', (string) $institute->get('phone'));
     $navigation = [
         ['label' => 'Home', 'url' => route('home'), 'active' => 'home'],
@@ -33,10 +33,10 @@
     <link rel="stylesheet" href="{{ asset('oxf/assets/vendor/bootstrap-icons/bootstrap-icons.min.css') }}">
     <style>
         @layer theme, base, components, oxf, utilities;
-        @import url('{{ asset('oxf/assets/css/style.css') }}') layer(oxf);
+        @import url('{{ $versioned('oxf/assets/css/style.css') }}') layer(oxf);
     </style>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="{{ asset('oxf/assets/css/inner.css') }}">
+    <link rel="stylesheet" href="{{ $versioned('oxf/assets/css/inner.css') }}">
     <script>document.documentElement.classList.add('js-anim');</script>
 </head>
 <body class="oxf-body theme-oxf flex min-h-screen flex-col bg-white font-sans text-slate-800 antialiased">
@@ -47,7 +47,7 @@
             <div class="container">
                 <ul class="topbar__list">
                     <li><i class="bi bi-envelope"></i><a href="mailto:{{ $institute->get('email') }}">{{ $institute->get('email') }}</a></li>
-                    <li><i class="bi bi-telephone"></i><a href="tel:{{ $phoneLink }}">{{ $institute->get('phone') }}</a></li>
+                    <li><i class="bi bi-telephone"></i><span><x-institute-phones /></span></li>
                     <li><i class="bi bi-geo-alt"></i>{{ $institute->get('address') }}</li>
                 </ul>
                 <div class="topbar__social">
@@ -107,7 +107,7 @@
             </ul>
             <x-verify-menu mobile />
             <div class="mobile-contact">
-                <p><i class="bi bi-telephone"></i><span><a href="tel:{{ $phoneLink }}">{{ $institute->get('phone') }}</a></span></p>
+                <p><i class="bi bi-telephone"></i><span><x-institute-phones /></span></p>
                 <p><i class="bi bi-envelope"></i><a href="mailto:{{ $institute->get('email') }}">{{ $institute->get('email') }}</a></p>
                 <p><i class="bi bi-geo-alt"></i><span>{{ $institute->get('address') }}</span></p>
             </div>
@@ -166,7 +166,7 @@
                     <h5>Contact</h5>
                     <ul class="footer__contact">
                         <li><i class="bi bi-geo-alt"></i><span>{{ $institute->get('address') }}</span></li>
-                        <li><i class="bi bi-telephone"></i><span><a href="tel:{{ $phoneLink }}">{{ $institute->get('phone') }}</a></span></li>
+                        <li><i class="bi bi-telephone"></i><span><x-institute-phones separator="<br>" /></span></li>
                         <li><i class="bi bi-envelope"></i><a href="mailto:{{ $institute->get('email') }}">{{ $institute->get('email') }}</a></li>
                     </ul>
                 </div>
@@ -182,6 +182,6 @@
 
     <a href="https://wa.me/{{ $whatsappNumber }}" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><i class="bi bi-whatsapp"></i></a>
     <button class="back-to-top" id="backToTop" aria-label="Back to top"><i class="bi bi-arrow-up"></i></button>
-    <script src="{{ asset('oxf/assets/js/inner.js') }}"></script>
+    <script src="{{ $versioned('oxf/assets/js/inner.js') }}"></script>
 </body>
 </html>

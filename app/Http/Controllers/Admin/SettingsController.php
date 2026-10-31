@@ -37,6 +37,7 @@ class SettingsController extends Controller
             'tagline' => ['nullable', 'string', 'max:160'],
             'address' => ['required', 'string', 'max:500'],
             'phone' => ['required', 'string', 'max:30'],
+            'phone_alt' => ['nullable', 'string', 'max:30'],
             'email' => ['required', 'email', 'max:255'],
             'website' => ['nullable', 'url:http,https', 'max:255'],
             'office_hours' => ['nullable', 'string', 'max:120'],

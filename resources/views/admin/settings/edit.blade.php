@@ -18,7 +18,8 @@
                 <x-input name="name" label="Institute name" :value="$values['name']" required />
                 <x-input name="tagline" label="Tagline" :value="$values['tagline']" />
                 <div class="sm:col-span-2"><x-textarea name="address" label="Address" :value="$values['address']" rows="2" required /></div>
-                <x-input name="phone" label="Phone" :value="$values['phone']" required />
+                <x-input name="phone" label="Phone (also used for WhatsApp)" :value="$values['phone']" required />
+                <x-input name="phone_alt" label="Second phone (optional)" :value="$values['phone_alt']" />
                 <x-input name="email" type="email" label="Email (receives enquiry alerts)" :value="$values['email']" required />
                 <x-input name="website" type="url" label="Website URL" :value="$values['website']" />
                 <x-input name="office_hours" label="Office hours" :value="$values['office_hours']" />

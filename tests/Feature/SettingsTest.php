@@ -49,6 +49,29 @@ class SettingsTest extends TestCase
         $this->get('/')->assertSee('Oxfordia Academy');
     }
 
+    public function test_every_page_shows_the_contact_details_from_settings(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $this->put(route('admin.settings.update'), $this->payload([
+            'phone_alt' => '+91 91111 11111',
+        ]))->assertRedirect(route('admin.settings.edit'));
+
+        app(InstituteSettings::class)->flush();
+
+        foreach (['/', route('about')] as $page) {
+            $this->get($page)
+                ->assertOk()
+                ->assertSee('1 Main Road')
+                ->assertSee('href="tel:+919000000000"', false)
+                ->assertSee('href="tel:+919111111111"', false)
+                ->assertSee('hello@oxfordia.test')
+                ->assertSee('https://wa.me/919000000000', false)
+                ->assertDontSee('98555-62888')
+                ->assertDontSee('oxfordiaedu@gmail.com');
+        }
+    }
+
     public function test_settings_are_validated(): void
     {
         $this->actingAs(User::factory()->admin()->create());
