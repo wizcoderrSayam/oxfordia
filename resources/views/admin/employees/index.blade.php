@@ -1,6 +1,6 @@
 <x-layouts.admin title="Employees">
-    <x-page-header title="Employees" subtitle="Staff records that can be checked on the public employee verification page.">
-        <a href="{{ route('employees.verify') }}" target="_blank" rel="noopener" class="btn-secondary"><x-icon name="external-link" /> Verification page</a>
+    <x-page-header title="Employees" subtitle="Staff records used for the public employee login page.">
+        <a href="{{ route('employees.verify') }}" target="_blank" rel="noopener" class="btn-secondary"><x-icon name="external-link" /> Employee login page</a>
         <a href="{{ route('admin.employees.create') }}" class="btn-primary"><x-icon name="user-plus" /> New employee</a>
     </x-page-header>
 
@@ -50,7 +50,7 @@
                             <td>
                                 <div class="flex justify-end gap-2">
                                     <a href="{{ route('admin.employees.edit', $employee) }}" class="btn-secondary btn-sm"><x-icon name="pencil" /> Edit</a>
-                                    <x-confirm :action="route('admin.employees.destroy', $employee)" method="DELETE" title="Delete employee?" :message="'“'.$employee->full_name.'” ('.$employee->registration_number.') will be permanently deleted and will no longer verify. This cannot be undone.'" confirm-label="Delete employee">
+                                    <x-confirm :action="route('admin.employees.destroy', $employee)" method="DELETE" title="Delete employee?" :message="'“'.$employee->full_name.'” ('.$employee->registration_number.') will be permanently deleted and will no longer be able to log in. This cannot be undone.'" confirm-label="Delete employee">
                                         <x-slot:trigger><x-icon name="trash-2" /> Delete</x-slot:trigger>
                                     </x-confirm>
                                 </div>

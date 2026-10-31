@@ -4,6 +4,7 @@
     $brandName = Str::upper(Str::before($siteName, ' '));
     $brandSub = Str::upper(trim(Str::after($siteName, ' ')) ?: 'Educational Group');
     $phoneLink = preg_replace('/[^0-9+]/', '', (string) $institute->get('phone'));
+    $whatsappNumber = preg_replace('/\D/', '', (string) $institute->get('phone'));
     $navigation = [
         ['label' => 'Home', 'url' => route('home'), 'active' => 'home'],
         ['label' => 'About', 'url' => route('about'), 'active' => 'about'],
@@ -55,6 +56,9 @@
                             <a href="{{ $institute->get($key) }}" target="_blank" rel="noopener" aria-label="{{ $network }}"><i class="bi {{ $iconClass }}"></i></a>
                         @endif
                     @endforeach
+                    @if ($whatsappNumber)
+                        <a href="https://wa.me/{{ $whatsappNumber }}" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                    @endif
                 </div>
             </div>
         </div>
@@ -75,8 +79,6 @@
                 <div class="header-actions">
                     @auth
                         <a href="{{ route('dashboard') }}" class="login-link desktop-only">{{ auth()->user()->isStudent() ? 'My Portal' : 'Dashboard' }}</a>
-                    @else
-                        <a href="{{ route('login') }}" class="login-link desktop-only">Log in</a>
                     @endauth
                     <x-verify-menu class="show-md" />
                     <button class="menu-toggle mobile-only" type="button" data-menu-open aria-controls="mobileMenu" aria-label="Open menu"><span></span><span></span><span></span></button>
@@ -99,13 +101,9 @@
                 @foreach ($navigation as $item)
                     <li><a href="{{ $item['url'] }}">{{ $item['label'] }}</a></li>
                 @endforeach
-                <li>
-                    @auth
-                        <a href="{{ route('dashboard') }}">{{ auth()->user()->isStudent() ? 'My Portal' : 'Dashboard' }}</a>
-                    @else
-                        <a href="{{ route('login') }}">Log in</a>
-                    @endauth
-                </li>
+                @auth
+                    <li><a href="{{ route('dashboard') }}">{{ auth()->user()->isStudent() ? 'My Portal' : 'Dashboard' }}</a></li>
+                @endauth
             </ul>
             <x-verify-menu mobile />
             <div class="mobile-contact">
@@ -142,6 +140,9 @@
                                 <a href="{{ $institute->get($key) }}" target="_blank" rel="noopener" aria-label="{{ $network }}"><i class="bi {{ $iconClass }}"></i></a>
                             @endif
                         @endforeach
+                        @if ($whatsappNumber)
+                            <a href="https://wa.me/{{ $whatsappNumber }}" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                        @endif
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-6">
@@ -158,7 +159,7 @@
                         <li><a href="{{ route('courses.index') }}">All courses</a></li>
                         <li><a href="{{ route('admissions.create') }}">Enquire now</a></li>
                         <li><a href="{{ route('certificates.verify') }}">Verify a certificate</a></li>
-                        <li><a href="{{ route('employees.verify') }}">Verify an employee</a></li>
+                        <li><a href="{{ route('employees.verify') }}">Employee Login</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6">
@@ -179,7 +180,7 @@
         </div>
     </footer>
 
-    <a href="https://wa.me/{{ preg_replace('/\D/', '', (string) $institute->get('phone')) }}" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><i class="bi bi-whatsapp"></i></a>
+    <a href="https://wa.me/{{ $whatsappNumber }}" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><i class="bi bi-whatsapp"></i></a>
     <button class="back-to-top" id="backToTop" aria-label="Back to top"><i class="bi bi-arrow-up"></i></button>
     <script src="{{ asset('oxf/assets/js/inner.js') }}"></script>
 </body>

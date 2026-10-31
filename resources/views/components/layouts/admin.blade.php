@@ -33,7 +33,7 @@
 
     $createActions = array_values(array_filter([
         ['label' => 'New student', 'hint' => 'Register a student', 'url' => route('admin.students.create'), 'icon' => 'user-plus'],
-        ['label' => 'New employee', 'hint' => 'Register a staff member for verification', 'url' => route('admin.employees.create'), 'icon' => 'id-card'],
+        ['label' => 'New employee', 'hint' => 'Register a staff member', 'url' => route('admin.employees.create'), 'icon' => 'id-card'],
         ['label' => 'New enrollment', 'hint' => 'Enroll a student in a course', 'url' => route('admin.enrollments.create'), 'icon' => 'clipboard-list'],
         ['label' => 'New course', 'hint' => 'Add to the catalogue', 'url' => route('admin.courses.create'), 'icon' => 'book-open'],
         ['label' => 'New category', 'hint' => 'Group related courses', 'url' => route('admin.categories.create'), 'icon' => 'tags'],

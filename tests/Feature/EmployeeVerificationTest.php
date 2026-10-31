@@ -29,7 +29,7 @@ class EmployeeVerificationTest extends TestCase
             ->assertSee('name="dob_day"', false)
             ->assertSee('name="dob_month"', false)
             ->assertSee('name="dob_year"', false)
-            ->assertDontSee('No employee found');
+            ->assertDontSee('Login failed');
     }
 
     public function test_the_header_links_to_employee_verification(): void
@@ -38,8 +38,15 @@ class EmployeeVerificationTest extends TestCase
             $this->get($page)
                 ->assertOk()
                 ->assertSee('href="'.route('employees.verify').'" class="btn-oxf btn-navy', false)
+                ->assertSee('Employee Login')
+                ->assertDontSee('Verify an employee')
                 ->assertDontSee('data-verify-menu', false);
         }
+    }
+
+    public function test_the_old_address_redirects_to_the_employee_login(): void
+    {
+        $this->get('/verify-employee')->assertRedirect('/employee-login');
     }
 
     public function test_the_form_can_be_prefilled_with_a_registration_number(): void
@@ -65,7 +72,7 @@ class EmployeeVerificationTest extends TestCase
 
         $this->post(route('employees.verify.lookup'), $this->details())
             ->assertOk()
-            ->assertSee('Verified employee')
+            ->assertSee('Active employee')
             ->assertSee('Ravi Shankar')
             ->assertSee('Mohan Shankar')
             ->assertSee('Sita Shankar')
@@ -95,7 +102,7 @@ class EmployeeVerificationTest extends TestCase
 
         foreach ([$wrongDateOfBirth, $unknownNumber] as $response) {
             $response->assertNotFound()
-                ->assertSee('No employee found')
+                ->assertSee('Login failed')
                 ->assertSee('15 March 1990')
                 ->assertDontSee('Ravi Shankar');
         }
@@ -115,7 +122,7 @@ class EmployeeVerificationTest extends TestCase
             ->assertOk()
             ->assertSee('No longer employed')
             ->assertSee('is no longer an employee', false)
-            ->assertDontSee('Verified employee');
+            ->assertDontSee('Active employee');
     }
 
     public function test_lookups_are_rate_limited(): void

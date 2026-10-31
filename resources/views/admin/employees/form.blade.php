@@ -2,7 +2,7 @@
     <x-page-header :title="$employee->exists ? 'Edit '.$employee->full_name : 'New employee'" :subtitle="$employee->exists ? 'Registration no. '.$employee->registration_number : 'A registration number is generated automatically.'" :back="$employee->exists ? route('admin.employees.show', $employee) : route('admin.employees.index')" />
 
     <x-callout class="mb-6">
-        All of these details, including the photo, are shown publicly on the <a href="{{ route('employees.verify') }}" target="_blank" rel="noopener" class="font-semibold underline">employee verification page</a> to anyone who enters the registration number and date of birth.
+        All of these details, including the photo, are shown publicly on the <a href="{{ route('employees.verify') }}" target="_blank" rel="noopener" class="font-semibold underline">employee login page</a> to anyone who enters the registration number and date of birth.
     </x-callout>
 
     <form id="employee-form" method="POST" action="{{ $employee->exists ? route('admin.employees.update', $employee) : route('admin.employees.store') }}" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-3" x-data="{ submitting: false }" @submit="submitting = true">
@@ -14,7 +14,7 @@
             <div class="grid gap-5 sm:grid-cols-2">
                 <x-input name="father_name" label="Father's name" :value="$employee->father_name" />
                 <x-input name="mother_name" label="Mother's name" :value="$employee->mother_name" />
-                <x-input name="date_of_birth" type="date" label="Date of birth" :value="$employee->date_of_birth?->toDateString()" required help="Needed with the registration number to verify the employee." />
+                <x-input name="date_of_birth" type="date" label="Date of birth" :value="$employee->date_of_birth?->toDateString()" required help="Needed with the registration number for the employee login." />
                 <x-input name="position" label="Position" :value="$employee->position" required help="e.g. Senior Faculty, Counsellor." />
             </div>
             <x-textarea name="address" label="Address" :value="$employee->address" rows="3" />
@@ -36,7 +36,7 @@
             <div class="flex justify-end gap-3">
                 <a href="{{ $employee->exists ? route('admin.employees.show', $employee) : route('admin.employees.index') }}" class="btn-secondary">Cancel</a>
                 @if ($employee->exists)
-                    <x-confirm-submit form="employee-form" title="Save changes?" :message="'Update the record for '.$employee->full_name.' ('.$employee->registration_number.')? Changes appear on the public verification page straight away.'" confirm-label="Save changes">
+                    <x-confirm-submit form="employee-form" title="Save changes?" :message="'Update the record for '.$employee->full_name.' ('.$employee->registration_number.')? Changes appear on the employee login page straight away.'" confirm-label="Save changes">
                         <x-slot:trigger>Save changes</x-slot:trigger>
                     </x-confirm-submit>
                 @else

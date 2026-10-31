@@ -1,6 +1,11 @@
 /* Layout shim: lets the Oxfordia header/footer (style.css) run without Bootstrap on inner pages. */
 .site-header .container,
-.footer .container { width: 100%; max-width: 1320px; margin-inline: auto; padding-inline: 12px; }
+.footer .container { width: 100%; margin-inline: auto; padding-inline: 12px; }
+@media (min-width: 576px) { .site-header .container, .footer .container { max-width: 540px; } }
+@media (min-width: 768px) { .site-header .container, .footer .container { max-width: 720px; } }
+@media (min-width: 992px) { .site-header .container, .footer .container { max-width: 960px; } }
+@media (min-width: 1200px) { .site-header .container, .footer .container { max-width: 1140px; } }
+@media (min-width: 1400px) { .site-header .container, .footer .container { max-width: 1320px; } }
 .site-header .d-none { display: none; }
 .footer .row { display: flex; flex-wrap: wrap; gap: 48px 24px; }
 .footer .row > div { flex: 1 1 100%; min-width: 0; }
@@ -9,7 +14,6 @@
   .footer .row > .col-lg-2 { flex: 0 0 calc(16.666% - 24px); }
   .footer .row > .col-lg-3 { flex: 0 0 calc(25% - 24px); }
 }
-.nav-main { gap: 30px; }
 .header-actions { display: flex; align-items: center; gap: 16px; }
 .header-actions .login-link { font-size: var(--btn-fs); font-weight: 600; color: var(--ink); }
 .header-actions .login-link:hover { color: var(--gold-deep); }

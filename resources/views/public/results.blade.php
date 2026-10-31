@@ -2,6 +2,7 @@
     $formatMarks = fn ($value): string => rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.');
 @endphp
 <x-layouts.public title="Results" description="Check your course results using your registration number and date of birth.">
+    @if ($enrollments->isEmpty())
     <section class="page-hero">
         <div class="page-hero__bg"><img src="{{ asset('oxf/assets/images/student-study.jpg') }}" alt=""></div>
         <div class="page-hero__ring" aria-hidden="true"></div>
@@ -15,6 +16,7 @@
             <p class="page-hero__lead" data-animate style="transition-delay:240ms">Enter your registration number and date of birth to see your marksheet and download your result.</p>
         </div>
     </section>
+    @endif
 
     @if ($enrollments->isNotEmpty())
         @foreach ($enrollments as $enrollment)
@@ -29,6 +31,8 @@
                 ['icon' => 'bi-person', 'label' => 'Student Name', 'value' => $student->full_name],
                 ['icon' => 'bi-person-badge', 'label' => 'Father Name', 'value' => $student->father_name ?: '—'],
                 ['icon' => 'bi-journal-bookmark', 'label' => 'Course', 'value' => $enrollment->course->title],
+                ['icon' => 'bi-calendar3', 'label' => 'Date of Birth', 'value' => $student->date_of_birth?->format('d M Y') ?? '—'],
+                ['icon' => 'bi-calendar-range', 'label' => 'Session', 'value' => $sessionStart ? $sessionStart->format('M Y').($sessionEnd ? ' – '.$sessionEnd->format('M Y') : '') : '—'],
             ];
         @endphp
         <section class="result-section">

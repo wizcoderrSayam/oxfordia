@@ -49,10 +49,11 @@ Route::middleware('throttle:verify-certificate')->group(function () {
         ->name('certificates.verify.show');
 });
 
-Route::get('/verify-employee', [Public\EmployeeVerificationController::class, 'index'])->name('employees.verify');
-Route::post('/verify-employee', [Public\EmployeeVerificationController::class, 'lookup'])
+Route::get('/employee-login', [Public\EmployeeVerificationController::class, 'index'])->name('employees.verify');
+Route::post('/employee-login', [Public\EmployeeVerificationController::class, 'lookup'])
     ->middleware('throttle:verify-employee')
     ->name('employees.verify.lookup');
+Route::permanentRedirect('/verify-employee', '/employee-login');
 
 /*
 |--------------------------------------------------------------------------

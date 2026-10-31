@@ -618,7 +618,7 @@ img {
   color: var(--gold-light);
 }
 
-/* Header "Verify Employee" button, mobile menu variant (components/verify-menu) */
+/* Header "Employee Login" button, mobile menu variant (components/verify-menu) */
 .verify-mobile {
   display: grid;
   gap: 10px;
